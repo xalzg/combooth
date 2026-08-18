@@ -1,0 +1,165 @@
+/* PhotoPreview.css */
+
+.photo-preview {
+  width: 100%;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* ── Header ── */
+.photo-preview__header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.photo-preview__title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.photo-preview__subtitle {
+  color: #8899AA;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+}
+
+/* ── Photo grid ── */
+.photo-grid {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+}
+
+.photo-grid--row {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  max-width: 600px;
+}
+
+.photo-grid--2x2 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 800px;
+}
+
+.photo-grid__item {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(11, 31, 58, 0.8);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  transition: all 0.3s;
+}
+
+.photo-grid__item:hover {
+  border-color: rgba(0, 217, 255, 0.5);
+  box-shadow: 0 0 20px rgba(0, 168, 255, 0.2);
+}
+
+.photo-grid__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Retake button (appears on hover) ── */
+.photo-retake-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(7, 20, 38, 0.85);
+  border: 1px solid rgba(0, 217, 255, 0.5);
+  color: #00D9FF;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 8px 16px;
+  border-radius: 100px;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: all 0.25s;
+  white-space: nowrap;
+}
+
+.photo-grid__item:hover .photo-retake-btn {
+  opacity: 1;
+}
+
+.photo-retake-btn:hover {
+  background: rgba(0, 168, 255, 0.2);
+  box-shadow: 0 0 16px rgba(0, 217, 255, 0.4);
+}
+
+/* ── Photo number badge ── */
+.photo-num-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(7, 20, 38, 0.8);
+  border: 1px solid rgba(0, 217, 255, 0.5);
+  color: #00D9FF;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Empty slot ── */
+.photo-grid__empty {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #8899AA;
+}
+
+.photo-empty-icon {
+  opacity: 0.4;
+  color: #00A8FF;
+}
+
+.photo-grid__empty p {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: #8899AA;
+}
+
+/* ── Actions ── */
+.photo-preview__actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 600px) {
+  .photo-grid--2x2 { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .photo-preview__actions { flex-direction: column; align-items: center; }
+}

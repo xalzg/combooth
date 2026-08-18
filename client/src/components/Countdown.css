@@ -1,0 +1,126 @@
+/* Countdown.css */
+
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 20, 38, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 20;
+  border-radius: 16px;
+  gap: 16px;
+}
+
+/* ── Pulsing rings ── */
+.countdown-ring {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 2px solid;
+  animation: ring-pulse 1s ease-out infinite;
+  pointer-events: none;
+}
+
+.countdown-ring--2 {
+  width: 280px;
+  height: 280px;
+  animation-delay: 0.3s;
+  border-width: 1px;
+}
+
+@keyframes ring-pulse {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  50%  { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(1.1); opacity: 0;   }
+}
+
+/* ── Number ── */
+.countdown-number {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(5rem, 15vw, 10rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 5;
+  user-select: none;
+}
+
+.countdown-number--enter {
+  animation: count-pop-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.countdown-number--exit {
+  animation: count-pop-out 0.3s ease-in forwards;
+}
+
+@keyframes count-pop-in {
+  0%   { transform: scale(0.2) translateY(20px); opacity: 0; filter: blur(10px); }
+  100% { transform: scale(1)   translateY(0);    opacity: 1; filter: blur(0); }
+}
+
+@keyframes count-pop-out {
+  0%   { transform: scale(1);   opacity: 1; filter: blur(0); }
+  100% { transform: scale(1.8); opacity: 0; filter: blur(8px); }
+}
+
+/* ── Label ── */
+.countdown-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(1rem, 3vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 5;
+}
+
+.countdown-label--enter {
+  animation: label-slide-in 0.4s ease forwards;
+  animation-delay: 0.1s;
+  opacity: 0;
+}
+
+.countdown-label--exit {
+  animation: label-fade-out 0.3s ease forwards;
+}
+
+@keyframes label-slide-in {
+  0%   { transform: translateY(8px);  opacity: 0; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes label-fade-out {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Progress dots ── */
+.countdown-dots {
+  display: flex;
+  gap: 10px;
+  position: relative;
+  z-index: 5;
+  margin-top: 8px;
+}
+
+.countdown-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(200, 212, 227, 0.2);
+  border: 1px solid rgba(200, 212, 227, 0.2);
+  transition: all 0.3s;
+}
+
+.countdown-dot--active {
+  transform: scale(1.4);
+}
+
+.countdown-dot--done {
+  opacity: 0.5;
+}

@@ -1,0 +1,315 @@
+/* CameraPage.css */
+
+.camera-page { background: var(--deep-navy); }
+
+/*
+ * CRITICAL: The camera section (containing <video ref={videoRef}>) must ALWAYS
+ * be in the DOM so the ref is populated before startCamera() runs.
+ * --visible  → positioned normally inside the page flow
+ * --hidden   → positioned off-screen (invisible, no pointer events)
+ */
+.camera-always-wrapper--visible {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 2rem;
+  flex: 1;
+}
+
+.camera-always-wrapper--hidden {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 640px;
+  height: 360px;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ── Camera main area ── */
+.camera-main {
+  gap: 20px;
+  padding: 1rem 2rem 1.5rem;
+}
+
+/* ── Loading state ── */
+.camera-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  padding: 60px;
+}
+
+/* ── Error state ── */
+.camera-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  text-align: center;
+  padding: 48px 40px;
+  max-width: 480px;
+}
+
+.camera-error__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.camera-error__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--white);
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.camera-error__msg {
+  font-size: 0.9rem;
+  color: var(--silver);
+  line-height: 1.6;
+  max-width: 360px;
+  margin: 0;
+}
+
+/* ── Camera info row ── */
+.camera-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Camera viewport wrapper ── */
+.camera-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* ── Flash effect ── */
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  border-radius: 16px;
+  z-index: 30;
+  animation: flash-out 0.3s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes flash-out {
+  0%   { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+/* ── Controls ── */
+.camera-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.capture-btn {
+  padding: 16px 56px;
+  border-radius: 100px;
+  font-size: 1rem;
+  gap: 12px;
+  min-width: 200px;
+}
+
+.capture-btn::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 100px;
+  background: linear-gradient(135deg, var(--electric-blue), var(--cyan));
+  z-index: -1;
+  opacity: 0.25;
+  filter: blur(16px);
+}
+
+.capture-btn:hover::after {
+  opacity: 0.5;
+}
+
+.countdown-hint {
+  font-family: var(--font-accent);
+  font-size: 0.85rem;
+  color: var(--silver-dim);
+  letter-spacing: 0.05em;
+  animation: blink 1s ease-in-out infinite;
+}
+
+/* ── Captured strip ── */
+.captured-strip {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.captured-thumb {
+  position: relative;
+  width: 72px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  transition: all 0.3s;
+}
+
+.captured-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.captured-thumb span {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  color: #00D9FF;
+  text-shadow: 0 0 4px #00D9FF;
+}
+
+.captured-thumb:hover {
+  border-color: rgba(0, 217, 255, 0.7);
+  box-shadow: 0 0 12px rgba(0, 217, 255, 0.3);
+}
+
+/* ── Frame info badge ── */
+.frame-info-badge {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* ── Reviewing main ── */
+.reviewing-main {
+  padding: 1.5rem 2rem;
+}
+
+/* ── Processing screen ── */
+.processing-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+  padding: 60px 40px;
+  max-width: 500px;
+  width: 100%;
+}
+
+.processing-icon {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.processing-spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(0, 217, 255, 0.15);
+  border-top-color: #00D9FF;
+  animation: spin 1s linear infinite;
+}
+
+.processing-icon > span {
+  font-size: 2rem;
+  color: var(--cyan);
+  animation: glow-pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Result main ── */
+.result-main {
+  padding: 1rem 2rem 2rem;
+}
+
+.result-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.result-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.result-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: var(--white);
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.result-image-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.result-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  animation: photo-reveal 0.8s ease-out;
+}
+
+.result-image-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  pointer-events: none;
+}
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes photo-reveal {
+  0%   { clip-path: inset(0 100% 0 0); opacity: 0; }
+  100% { clip-path: inset(0 0% 0 0);   opacity: 1; }
+}

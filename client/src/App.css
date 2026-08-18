@@ -1,0 +1,7 @@
+/* App.css — App-level overrides */
+
+/* Remove default Vite styles */
+#root {
+  max-width: 100%;
+  width: 100%;
+}

@@ -6,7 +6,7 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 50%, #0D2748 0%, #071426 70%);
+  background: radial-gradient(ellipse at 50% 50%, var(--deep-navy) 0%, var(--navy-blue) 70%);
 }
 
 /* ── SVG Circuit Lines ── */
@@ -85,11 +85,11 @@
 
 /* ── Variants ── */
 .circuit-bg--camera {
-  background: radial-gradient(ellipse at 50% 30%, #0A1E3A 0%, #071426 70%);
+  background: radial-gradient(ellipse at 50% 30%, var(--navy-mid) 0%, var(--deep-navy) 70%);
 }
 
 .circuit-bg--result {
-  background: radial-gradient(ellipse at 50% 60%, #0B1F3A 0%, #071426 70%);
+  background: radial-gradient(ellipse at 50% 60%, var(--navy-blue) 0%, var(--deep-navy) 70%);
 }
 
 /* ── Keyframes ── */

@@ -2,35 +2,10 @@
 
 .select-frame-page { background: var(--deep-navy); }
 
-/* ── Content ── */
+/* ── Main content ── */
 .select-frame-content {
   gap: 28px;
   padding: 2rem 2rem 1rem;
-}
-
-/* ── Section header ── */
-.section-header {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.section-title {
-  font-size: clamp(1.6rem, 4vw, 2.8rem);
-  font-weight: 800;
-  color: var(--white);
-  letter-spacing: 0.1em;
-  margin: 0;
-}
-
-.section-subtitle {
-  font-family: var(--font-accent);
-  font-size: 1rem;
-  font-style: italic;
-  color: var(--electric-blue);
-  margin: 0;
 }
 
 /* ── Frame grid ── */
@@ -43,43 +18,40 @@
 }
 
 @media (max-width: 1024px) {
-  .frame-grid { grid-template-columns: repeat(2, 1fr); }
+  .frame-grid { grid-template-columns: repeat(2, 1fr); max-width: 680px; }
 }
 @media (max-width: 600px) {
-  .frame-grid { grid-template-columns: 1fr; }
+  .frame-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+}
+@media (max-width: 400px) {
+  .frame-grid { grid-template-columns: 1fr; max-width: 360px; }
 }
 
-/* ── Selected info ── */
+/* ── Selected info bar ── */
 .selected-info {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 8px 20px;
-  background: rgba(0, 168, 255, 0.06);
-  border: 1px solid rgba(0, 217, 255, 0.2);
   border-radius: 100px;
-  backdrop-filter: blur(8px);
+  background: rgba(0, 168, 255, 0.08);
+  border: 1px solid rgba(0, 217, 255, 0.35);
+  backdrop-filter: blur(12px);
+  animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .selected-info__text {
   font-family: var(--font-accent);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   color: var(--silver);
-  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
-/* ── Page footer ── */
-.page-footer {
-  padding: 12px 40px 16px;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-}
-.page-footer__text {
-  font-family: var(--font-display);
-  font-size: 0.65rem;
-  letter-spacing: 0.15em;
-  color: var(--silver-dim);
-  margin: 8px 0 0;
-  text-transform: uppercase;
+/* ── Continue button area ── */
+.select-frame-page .anim-float-up.delay-3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }

@@ -5,7 +5,10 @@ import Camera from '../components/Camera';
 import Countdown from '../components/Countdown';
 import PhotoPreview from '../components/PhotoPreview';
 import { startCamera, stopCamera, captureFrame } from '../services/camera';
-import { composePhotos, downloadCanvas, generateFilename } from '../services/composer';
+import { composePhotos, downloadCanvas, downloadCanvasPNG, generateFilename, printCanvas } from '../services/composer';
+import QRWidget from '../components/QRWidget';
+import { trackSession } from '../services/analytics';
+import { playShutter, playSuccess } from '../services/sound';
 import './CameraPage.css';
 
 const STATES = {
@@ -19,7 +22,7 @@ const STATES = {
   ERROR:      'ERROR',
 };
 
-function CameraPage({ selectedFrame, photoCount }) {
+function CameraPage({ selectedFrame, photoCount, userEmail }) {
   const navigate = useNavigate();
 
   const [uiState,     setUiState]     = useState(STATES.SETUP);
@@ -30,6 +33,8 @@ function CameraPage({ selectedFrame, photoCount }) {
   const [progress,    setProgress]    = useState(0);
   const [finalCanvas, setFinalCanvas] = useState(null);
   const [flashActive, setFlashActive] = useState(false);
+  const [isMirrored,  setIsMirrored]  = useState(true);
+  const [emailStatus, setEmailStatus] = useState(''); // '', 'sending', 'sent', 'error'
 
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
@@ -88,6 +93,7 @@ function CameraPage({ selectedFrame, photoCount }) {
   const handleCountdownComplete = useCallback(() => {
     setUiState(STATES.CAPTURING);
     setFlashActive(true);
+    playShutter();
     setTimeout(() => setFlashActive(false), 350);
 
     setTimeout(() => {
@@ -138,20 +144,56 @@ function CameraPage({ selectedFrame, photoCount }) {
   const handleContinueToCompose = useCallback(async () => {
     setUiState(STATES.PROCESSING);
     setProgress(0);
+    setEmailStatus('');
     try {
       const canvas = await composePhotos(photos, selectedFrame, photoCount, pct => setProgress(pct));
       setFinalCanvas(canvas);
+      
+      // Attempt to send email in background
+      setEmailStatus('sending');
+      fetch('http://localhost:3001/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userEmail,
+          imageBase64: canvas.toDataURL('image/jpeg', 0.95),
+          frameName: selectedFrame.name
+        })
+      }).then(res => {
+        if (res.ok) setEmailStatus('sent');
+        else setEmailStatus('error');
+      }).catch(() => setEmailStatus('error'));
+
       setUiState(STATES.DONE);
+      playSuccess();
+      trackSession('complete', selectedFrame?.id, photoCount);
     } catch (err) {
       console.error(err);
       setErrorMsg('COMPOSE_ERROR');
       setUiState(STATES.ERROR);
     }
-  }, [photos, selectedFrame, photoCount]);
+  }, [photos, selectedFrame, photoCount, userEmail]);
 
   const handleDownloadJPG = useCallback(() => {
-    if (finalCanvas) downloadCanvas(finalCanvas, generateFilename('jpg'));
-  }, [finalCanvas]);
+    if (finalCanvas) {
+      downloadCanvas(finalCanvas, generateFilename('jpg'));
+      trackSession('download', selectedFrame?.id, photoCount);
+    }
+  }, [finalCanvas, selectedFrame, photoCount]);
+
+  const handleDownloadPNG = useCallback(() => {
+    if (finalCanvas) {
+      downloadCanvasPNG(finalCanvas, generateFilename('png'));
+      trackSession('download', selectedFrame?.id, photoCount);
+    }
+  }, [finalCanvas, selectedFrame, photoCount]);
+
+  const handlePrint = useCallback(() => {
+    if (finalCanvas) {
+      printCanvas(finalCanvas, selectedFrame);
+      trackSession('print', selectedFrame?.id, photoCount);
+    }
+  }, [finalCanvas, selectedFrame, photoCount]);
 
   const handleFotoLagi = useCallback(() => {
     setPhotos([]);
@@ -161,6 +203,11 @@ function CameraPage({ selectedFrame, photoCount }) {
     setProgress(0);
     setUiState(STATES.READY);
   }, []);
+
+  const handleShareWA = useCallback(() => {
+    const text = encodeURIComponent(`Hi! Lihat foto kerenku dari COMIT Booth dengan frame ${selectedFrame?.name} 📸✨\n\n(Note: Kamu perlu mendownload foto ini terlebih dahulu sebelum membagikannya)`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  }, [selectedFrame]);
 
   const handleRetryCamera = useCallback(async () => {
     setUiState(STATES.SETUP);
@@ -212,7 +259,7 @@ function CameraPage({ selectedFrame, photoCount }) {
         <div className="camera-viewport">
           <Camera
             videoRef={videoRef}
-            mirrored={true}
+            mirrored={isMirrored}
             isActive={uiState === STATES.READY}
             photoIndex={displayIdx + 1}
             photoTotal={photoCount}
@@ -296,12 +343,24 @@ function CameraPage({ selectedFrame, photoCount }) {
           {/* Controls */}
           <div className="camera-controls anim-float-up delay-2">
             {uiState === STATES.READY && (
-              <button id="btn-capture-start" className="btn btn-primary btn-lg capture-btn" onClick={handleStartCapture}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-                </svg>
-                {retakeIdx !== null ? 'ULANG FOTO' : 'MULAI'}
-              </button>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                <button 
+                  className="btn btn-ghost btn-sm" 
+                  onClick={() => setIsMirrored(!isMirrored)}
+                  title="Flip Camera"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/>
+                  </svg>
+                  {isMirrored ? 'Mirrored' : 'Normal'}
+                </button>
+                <button id="btn-capture-start" className="btn btn-primary btn-lg capture-btn" onClick={handleStartCapture}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+                  </svg>
+                  {retakeIdx !== null ? 'ULANG FOTO' : 'MULAI'}
+                </button>
+              </div>
             )}
             {uiState === STATES.COUNTDOWN && (
               <p className="countdown-hint">Bersiaplah dan lihat ke kamera...</p>
@@ -377,30 +436,72 @@ function CameraPage({ selectedFrame, photoCount }) {
               <p style={{ color: '#8899AA', margin: 0, fontSize: '0.85rem' }}>
                 Foto berhasil dikomposisikan dengan frame {selectedFrame.name}.
               </p>
+              
+              {/* Email Status Indicator */}
+              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                {emailStatus === 'sending' && <span style={{ color: '#00D9FF' }}>⏳ Mengirim ke {userEmail}...</span>}
+                {emailStatus === 'sent' && <span style={{ color: '#10B981' }}>✅ Terkirim ke {userEmail}</span>}
+                {emailStatus === 'error' && <span style={{ color: '#EF4444' }}>❌ Gagal mengirim ke {userEmail}</span>}
+              </div>
             </div>
 
-            <div className="result-image-wrap anim-scale-in">
-              <img
-                src={finalCanvas.toDataURL('image/jpeg', 0.95)}
-                alt="COMIT Booth hasil akhir"
-                className="result-image"
-              />
+            {/* Photo + QR side-by-side layout */}
+            <div className="result-body">
+              <div className="result-image-wrap anim-scale-in">
+                <img
+                  src={finalCanvas.toDataURL('image/jpeg', 0.95)}
+                  alt="COMIT Booth hasil akhir"
+                  className="result-image"
+                />
+              </div>
+
+              {/* QR Widget */}
+              <div className="result-qr anim-float-up delay-3">
+                <QRWidget accentColor={selectedFrame?.accentColor || '#00D9FF'} />
+              </div>
             </div>
 
             <div className="result-actions">
-              <button id="btn-download-jpg" className="btn btn-primary btn-lg" onClick={handleDownloadJPG}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                DOWNLOAD JPG
-              </button>
-              <button id="btn-foto-lagi" className="btn btn-outline" onClick={handleFotoLagi}>
-                📸 Foto Lagi
-              </button>
-              <button id="btn-back-home-result" className="btn btn-ghost" onClick={() => { stopCamera(); navigate('/'); }}>
-                🏠 Home
-              </button>
+              {/* Primary actions */}
+              <div className="result-actions-primary">
+                <button id="btn-download-jpg" className="btn btn-primary btn-lg" onClick={handleDownloadJPG}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  JPG
+                </button>
+                <button id="btn-download-png" className="btn btn-primary btn-lg" onClick={handleDownloadPNG}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  PNG
+                </button>
+                <button id="btn-print-photo" className="btn btn-outline btn-lg" onClick={handlePrint}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="6 9 6 2 18 2 18 9"/>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                    <rect x="6" y="14" width="12" height="8"/>
+                  </svg>
+                  CETAK FOTO
+                </button>
+                <button id="btn-share-wa" className="btn btn-outline btn-lg" style={{ borderColor: '#25D366', color: '#25D366' }} onClick={handleShareWA}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  SHARE WA
+                </button>
+              </div>
+              {/* Secondary actions */}
+              <div className="result-actions-secondary">
+                <button id="btn-foto-lagi" className="btn btn-ghost" onClick={handleFotoLagi}>
+                  📸 Foto Lagi
+                </button>
+                <button id="btn-back-home-result" className="btn btn-ghost btn-sm" onClick={() => { stopCamera(); navigate('/'); }}>
+                  🏠 Home
+                </button>
+              </div>
             </div>
           </div>
         </main>

@@ -1,147 +1,103 @@
 /**
  * frameConfig.js — COMIT Booth Frame Registry
- *
- * Layout zones (must match composer.js constants):
- *   TOP_H  = 80   — top header bar
- *   BOT_H  = 100  — bottom branding strip
- *   SIDE_W = 50   — left/right side panel
- *
- * Photo grid occupies: x=[50..1150], y=[80..800]
+ * Portrait Mode (9:16) for Kabinet Avantera
  */
 
-const CANVAS_W = 1200;
-const CANVAS_H = 900;
-
-const TOP_H   = 80;
-const BOT_H   = 100;
-const SIDE_W  = 50;
-const GAP     = 16;
-
-const PHOTO_X = SIDE_W;
-const PHOTO_Y = TOP_H;
-const PHOTO_W = CANVAS_W - SIDE_W * 2;
-const PHOTO_H = CANVAS_H - TOP_H - BOT_H;
+export const CANVAS_W = 1080;
+export const CANVAS_H = 1920;
 
 // ── Slot layout generators ─────────────────────────────────────────────────
 
-function layout1() {
-  return [{
-    x: PHOTO_X, y: PHOTO_Y,
-    width: PHOTO_W, height: PHOTO_H
-  }];
-}
-
-function layout2() {
-  const w = (PHOTO_W - GAP) / 2;
-  return [
-    { x: PHOTO_X,         y: PHOTO_Y, width: w, height: PHOTO_H },
-    { x: PHOTO_X + w + GAP, y: PHOTO_Y, width: w, height: PHOTO_H },
+function getPortraitSlots(count) {
+  // For Kabinet Avantera, we focus on a 2x2 grid in the center
+  // 400x300 photos (4:3 aspect ratio)
+  // X: 120 and 560
+  // Y: 600 and 940
+  const slots = [
+    { x: 120, y: 600, width: 400, height: 300 },
+    { x: 560, y: 600, width: 400, height: 300 },
+    { x: 120, y: 940, width: 400, height: 300 },
+    { x: 560, y: 940, width: 400, height: 300 },
   ];
-}
-
-function layout3() {
-  const leftW  = (PHOTO_W - GAP) / 2;
-  const halfH  = (PHOTO_H - GAP) / 2;
-  return [
-    { x: PHOTO_X,               y: PHOTO_Y,               width: leftW, height: PHOTO_H },
-    { x: PHOTO_X + leftW + GAP, y: PHOTO_Y,               width: leftW, height: halfH },
-    { x: PHOTO_X + leftW + GAP, y: PHOTO_Y + halfH + GAP, width: leftW, height: halfH },
-  ];
-}
-
-function layout4() {
-  const w = (PHOTO_W - GAP) / 2;
-  const h = (PHOTO_H - GAP) / 2;
-  return [
-    { x: PHOTO_X,         y: PHOTO_Y,         width: w, height: h },
-    { x: PHOTO_X + w + GAP, y: PHOTO_Y,       width: w, height: h },
-    { x: PHOTO_X,         y: PHOTO_Y + h + GAP, width: w, height: h },
-    { x: PHOTO_X + w + GAP, y: PHOTO_Y + h + GAP, width: w, height: h },
-  ];
-}
-
-function getSlots(count) {
-  switch (count) {
-    case 1:  return layout1();
-    case 2:  return layout2();
-    case 3:  return layout3();
-    case 4:  return layout4();
-    default: return layout4();
+  
+  if (count === 1) {
+    return [{ x: 240, y: 660, width: 600, height: 600 }]; // 1 big square
   }
+  if (count === 2) {
+    return [
+      { x: 340, y: 600, width: 400, height: 300 },
+      { x: 340, y: 940, width: 400, height: 300 },
+    ];
+  }
+  if (count === 3) {
+    return [
+      { x: 340, y: 550, width: 400, height: 300 },
+      { x: 340, y: 880, width: 400, height: 300 },
+      { x: 340, y: 1210, width: 400, height: 300 },
+    ];
+  }
+  
+  return slots;
 }
 
 // ── Frame definitions ──────────────────────────────────────────────────────
 
 export const FRAMES = [
   {
-    id:          'avantera-future',
-    name:        'Avantera Future',
+    id:          'avantera-1',
+    name:        'Kabinet Avantera 1',
     subtitle:    'Future In Motion',
-    description: 'Gerbang portal holografis dengan arch neon, kristal mengambang, dan circuit board.',
-    previewBg:   'linear-gradient(135deg, #071426 0%, #0B1F3A 50%, #071426 100%)',
-    accentColor: '#00D9FF',
-    overlayColor: '#00A8FF',
+    description: 'Frame vertikal dengan desain elegan arch neon dan panggung holografis.',
+    previewBg:   'linear-gradient(135deg, var(--deep-navy) 0%, var(--navy-mid) 100%)',
+    accentColor: '#1A73E8',
+    overlayColor: '#00D9FF',
     canvas:      { width: CANVAS_W, height: CANVAS_H },
+    image:       '/src/assets/frames/avantera_1.jpg',
     branding: {
       topText:    'COMIT BOOTH',
-      bottomText: 'KABINET AVANTERA × FUTURE IN MOTION',
+      bottomText: 'KABINET AVANTERA',
       orgText:    'Community of Information Technology',
     },
   },
   {
-    id:          'comit-tech',
-    name:        'COMIT Tech Frame',
-    subtitle:    'Circuit Board Edition',
-    description: 'Frame pola circuit board dengan binary code, neon biru elektrik, dan PCB corner pads.',
-    previewBg:   'linear-gradient(135deg, #0B1F3A 0%, #071426 50%, #0D2748 100%)',
-    accentColor: '#00A8FF',
+    id:          'avantera-2',
+    name:        'Kabinet Avantera 2',
+    subtitle:    'Innovation Edition',
+    description: 'Frame vertikal dengan desain elegan arch neon dan tata letak dinamis.',
+    previewBg:   'linear-gradient(135deg, var(--navy-mid) 0%, var(--navy-blue) 100%)',
+    accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
     canvas:      { width: CANVAS_W, height: CANVAS_H },
+    image:       '/src/assets/frames/avantera_2.jpg',
     branding: {
       topText:    'COMIT BOOTH',
-      bottomText: 'COMIT × KABINET AVANTERA',
+      bottomText: 'KABINET AVANTERA',
       orgText:    'Community of Information Technology',
     },
   },
   {
-    id:          'avantera-city',
-    name:        'Avantera City',
-    subtitle:    'Urban Future Edition',
-    description: 'Cakrawala kota futuristik dengan neon rings, city skyline, dan wave energy.',
-    previewBg:   'linear-gradient(135deg, #071426 0%, #0A1E3A 60%, #071426 100%)',
-    accentColor: '#7C5CFF',
+    id:          'avantera-3',
+    name:        'Kabinet Avantera 3',
+    subtitle:    'Technology Edition',
+    description: 'Frame vertikal dengan nuansa neon biru elektrik khas COMIT.',
+    previewBg:   'linear-gradient(135deg, var(--navy-blue) 0%, var(--deep-navy) 100%)',
+    accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
     canvas:      { width: CANVAS_W, height: CANVAS_H },
+    image:       '/src/assets/frames/avantera_3.jpg',
     branding: {
       topText:    'COMIT BOOTH',
-      bottomText: 'AVANTERA CITY × UNIPI',
-      orgText:    'Universitas Insan Pembangunan Indonesia',
+      bottomText: 'KABINET AVANTERA',
+      orgText:    'Community of Information Technology',
     },
-  },
-  {
-    id:          'comit-classic',
-    name:        'COMIT Classic',
-    subtitle:    'Minimal Premium Edition',
-    description: 'Desain bersih dengan corner bracket neon, border minimal, dan tipografi premium.',
-    previewBg:   'linear-gradient(135deg, #071426 0%, #0B1F3A 100%)',
-    accentColor: '#C8D4E3',
-    overlayColor: '#00A8FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    branding: {
-      topText:    'COMIT BOOTH',
-      bottomText: 'Community of Information Technology | UNIPI',
-      orgText:    'Universitas Insan Pembangunan Indonesia',
-    },
-  },
+  }
 ];
 
 /**
  * Get photo slot positions for a given frame and count.
- * @param {string} _frameId  (reserved for future per-frame custom layouts)
- * @param {number} count     1–4
  */
 export function getFrameSlots(_frameId, count) {
-  return getSlots(count);
+  return getPortraitSlots(count);
 }
 
 /** Get frame config by ID */

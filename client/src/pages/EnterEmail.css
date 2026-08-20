@@ -1,0 +1,92 @@
+/* EnterEmail.css */
+
+.enter-email-page {
+  background: var(--deep-navy);
+}
+
+.email-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  background: var(--glass-bg-2);
+}
+
+.email-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.email-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.email-header p {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.email-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.email-input {
+  width: 100%;
+  padding: 16px 20px;
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.5);
+  border: 2px solid rgba(26, 115, 232, 0.3);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: var(--transition);
+}
+
+.email-input:focus {
+  border-color: var(--electric-blue);
+  box-shadow: 0 0 15px rgba(26, 115, 232, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.email-input::placeholder {
+  color: var(--silver-dim);
+  opacity: 0.6;
+}
+
+.input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
+}
+
+.error-text {
+  font-size: 0.8rem;
+  color: var(--danger);
+  font-weight: 500;
+  padding-left: 4px;
+}
+
+.email-btn {
+  width: 100%;
+  padding: 18px;
+  font-size: 1rem;
+}
+
+@media (max-width: 480px) {
+  .email-card {
+    padding: 30px 20px;
+  }
+}

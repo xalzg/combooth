@@ -11,6 +11,9 @@ function SelectFrame({ onFrameSelect, selectedFrame }) {
 
   const handleSelect = (frame) => {
     onFrameSelect(frame);
+    setTimeout(() => {
+      navigate('/select-photos');
+    }, 600);
   };
 
   const handleContinue = () => {

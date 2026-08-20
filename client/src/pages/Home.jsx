@@ -1,16 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CircuitBackground from '../components/CircuitBackground';
+import mascotImg from '../assets/mascot.jpg';
 import './Home.css';
 
 function Home() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const fullTagline = '"Capture Your Moment. Create Your Future."';
+  const [typedTagline, setTypedTagline] = useState('');
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 100);
-    return () => clearTimeout(t);
+    
+    let i = 0;
+    const typing = setInterval(() => {
+      setTypedTagline(fullTagline.substring(0, i));
+      i++;
+      if (i > fullTagline.length) clearInterval(typing);
+    }, 50);
+
+    return () => {
+      clearTimeout(t);
+      clearInterval(typing);
+    };
   }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  };
 
   return (
     <div className="page home-page">
@@ -27,19 +49,52 @@ function Home() {
             <span className="neon-dot" style={{ width: 6, height: 6 }} />
             KABINET AVANTERA
           </div>
+          <button
+            id="btn-admin-link"
+            className="admin-link-btn"
+            onClick={() => navigate('/admin')}
+            title="Admin Dashboard"
+            aria-label="Admin Dashboard"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </button>
+          <button
+            className="admin-link-btn"
+            onClick={toggleFullscreen}
+            title="Toggle Fullscreen"
+            aria-label="Toggle Fullscreen"
+            style={{ marginLeft: 8 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+            </svg>
+          </button>
         </div>
       </header>
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="page-content home-content">
-        {/* Top badge */}
-        <div className={`home-badge anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.1s' }}>
-          <span className="neon-dot" />
-          Universitas Insan Pembangunan Indonesia
+        {/* Mascot */}
+        <div className={`anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.2s', marginBottom: '20px' }}>
+          <img 
+            src={mascotImg} 
+            alt="COMIT Mascot" 
+            style={{ 
+              width: '240px', 
+              height: '240px', 
+              objectFit: 'cover', 
+              borderRadius: '50%',
+              boxShadow: 'var(--glow-card)',
+              border: '4px solid var(--white)'
+            }} 
+          />
         </div>
 
         {/* Title */}
-        <div className={`home-title-wrap anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.25s' }}>
+        <div className={`home-title-wrap anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.3s' }}>
           <h1 className="home-title">
             <span className="home-title__main shimmer-text">COMIT</span>
             <br />
@@ -49,21 +104,23 @@ function Home() {
         </div>
 
         {/* Tagline */}
-        <p className={`home-tagline anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.4s' }}>
-          "Capture Your Moment. Create Your Future."
+        <p className={`home-tagline anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.5s' }}>
+          {typedTagline}
+          <span className="cursor-blink">|</span>
         </p>
 
         {/* Description */}
-        <p className={`home-desc anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.5s' }}>
-          Digital photobooth resmi COMIT — pilih frame, ambil foto, dan simpan kenangan Anda.
+        <p className={`home-desc anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.6s' }}>
+          Photobooth interaktif untuk event COMIT dengan 
+          beragam pilihan frame futuristik dan pengalaman tanpa batas.
         </p>
 
-        {/* CTA Button */}
-        <div className={`home-cta anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.65s' }}>
+        {/* Action Button */}
+        <div className={`anim-float-up ${ready ? '' : 'opacity-0'}`} style={{ animationDelay: '0.7s', marginTop: '20px' }}>
           <button
             id="btn-start"
             className="btn btn-primary btn-lg home-start-btn"
-            onClick={() => navigate('/select-frame')}
+            onClick={() => navigate('/enter-email')}
           >
             <span>MULAI FOTO</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Home        from './pages/Home';
-import SelectFrame from './pages/SelectFrame';
-import SelectPhotos from './pages/SelectPhotos';
-import CameraPage  from './pages/CameraPage';
+import Home           from './pages/Home';
+import SelectFrame   from './pages/SelectFrame';
+import SelectPhotos  from './pages/SelectPhotos';
+import CameraPage    from './pages/CameraPage';
+import AdminDashboard from './pages/AdminDashboard';
+import EnterEmail     from './pages/EnterEmail';
 import './index.css';
 import './App.css';
 
@@ -20,19 +22,27 @@ import './App.css';
 function App() {
   const [selectedFrame, setSelectedFrame] = useState(null);
   const [photoCount,    setPhotoCount]    = useState(4); // default 4
+  const [userEmail,     setUserEmail]     = useState('');
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
 
+        <Route 
+          path="/enter-email" 
+          element={<EnterEmail onEmailSubmit={setUserEmail} />} 
+        />
+
         <Route
           path="/select-frame"
           element={
-            <SelectFrame
-              selectedFrame={selectedFrame}
-              onFrameSelect={setSelectedFrame}
-            />
+            userEmail
+              ? <SelectFrame
+                  selectedFrame={selectedFrame}
+                  onFrameSelect={setSelectedFrame}
+                />
+              : <Navigate to="/enter-email" replace />
           }
         />
 
@@ -52,14 +62,18 @@ function App() {
         <Route
           path="/camera"
           element={
-            selectedFrame && photoCount
+            selectedFrame && photoCount && userEmail
               ? <CameraPage
                   selectedFrame={selectedFrame}
                   photoCount={photoCount}
+                  userEmail={userEmail}
                 />
               : <Navigate to="/select-frame" replace />
           }
         />
+
+        {/* Admin dashboard — no auth guard; restrict via network/IP in production */}
+        <Route path="/admin" element={<AdminDashboard />} />
 
         {/* Catch-all → home */}
         <Route path="*" element={<Navigate to="/" replace />} />

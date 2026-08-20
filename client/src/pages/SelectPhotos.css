@@ -21,11 +21,11 @@
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
   width: 100%;
-  max-width: 900px;
+  max-width: 920px;
 }
 
 @media (max-width: 900px) {
-  .photo-count-grid { grid-template-columns: repeat(2, 1fr); }
+  .photo-count-grid { grid-template-columns: repeat(2, 1fr); max-width: 540px; }
 }
 @media (max-width: 500px) {
   .photo-count-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -43,24 +43,50 @@
   border: 1px solid rgba(0, 217, 255, 0.2);
   border-radius: 20px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(16px);
   text-align: center;
   overflow: hidden;
 }
 
+/* Shimmer on hover */
+.count-card::before {
+  content: '';
+  position: absolute;
+  top: -80%;
+  left: -60%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 60%
+  );
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.count-card:hover::before {
+  left: 130%;
+}
+
 .count-card:hover {
-  border-color: rgba(0, 217, 255, 0.5);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0, 168, 255, 0.2);
+  border-color: rgba(0, 217, 255, 0.55);
+  transform: translateY(-5px) scale(1.02);
+  box-shadow:
+    0 14px 44px rgba(0, 168, 255, 0.22),
+    0 0 0 1px rgba(0, 217, 255, 0.15);
 }
 
 .count-card--selected {
   border-color: #00D9FF !important;
   box-shadow:
     0 0 0 2px #00D9FF,
-    0 0 30px rgba(0, 217, 255, 0.4),
-    0 0 60px rgba(0, 217, 255, 0.1) !important;
+    0 0 32px rgba(0, 217, 255, 0.45),
+    0 0 64px rgba(0, 217, 255, 0.12) !important;
   background: rgba(0, 168, 255, 0.08) !important;
 }
 
@@ -81,6 +107,7 @@
   letter-spacing: 0.06em;
   padding: 3px 10px;
   border-radius: 4px 0 0 4px;
+  z-index: 2;
 }
 
 /* ── Layout preview ── */
@@ -88,6 +115,8 @@
   width: 100%;
   border-radius: 8px;
   overflow: hidden;
+  position: relative;
+  z-index: 2;
 }
 
 /* ── Info ── */
@@ -95,6 +124,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  position: relative;
+  z-index: 2;
 }
 
 .count-card__label {
@@ -103,10 +134,16 @@
   font-weight: 800;
   color: var(--white);
   letter-spacing: 0.08em;
+  transition: color 0.3s, text-shadow 0.3s;
+}
+
+.count-card:hover .count-card__label {
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.4);
 }
 
 .count-card--selected .count-card__label {
   color: #00D9FF;
+  text-shadow: 0 0 12px rgba(0, 217, 255, 0.6);
 }
 
 .count-card__desc {
@@ -133,11 +170,12 @@
   height: 10px;
   border-radius: 50%;
   background: #00D9FF;
-  box-shadow: 0 0 8px #00D9FF;
-  animation: scale-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  box-shadow: 0 0 10px #00D9FF, 0 0 20px rgba(0, 217, 255, 0.5);
+  animation: dot-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 3;
 }
 
-@keyframes scale-in {
-  from { transform: scale(0); }
-  to   { transform: scale(1); }
+@keyframes dot-pop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }

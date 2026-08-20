@@ -10,15 +10,39 @@
   overflow: hidden;
   border: 1px solid rgba(0, 217, 255, 0.2);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Outer pulsing ring when active */
+.camera-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 18px;
+  background: transparent;
+  border: 2px solid rgba(0, 217, 255, 0);
+  transition: all 0.4s;
+  pointer-events: none;
+  z-index: 30;
 }
 
 .camera-wrapper--active {
-  border-color: rgba(0, 217, 255, 0.6);
+  border-color: rgba(0, 217, 255, 0.65);
   box-shadow:
     0 0 0 1px rgba(0, 217, 255, 0.4),
-    0 0 30px rgba(0, 168, 255, 0.2),
-    0 0 60px rgba(0, 168, 255, 0.1);
+    0 0 35px rgba(0, 168, 255, 0.25),
+    0 0 70px rgba(0, 168, 255, 0.12),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.camera-wrapper--active::before {
+  border-color: rgba(0, 217, 255, 0.3);
+  animation: camera-ring-pulse 2s ease-in-out infinite;
+}
+
+@keyframes camera-ring-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.6; border-color: rgba(0, 217, 255, 0.3); }
+  50%       { transform: scale(1.01); opacity: 1;   border-color: rgba(0, 217, 255, 0.6); }
 }
 
 /* ── Video ── */
@@ -37,56 +61,66 @@
 /* ── Corner decorators ── */
 .camera-corner {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   z-index: 5;
   pointer-events: none;
+  transition: all 0.3s;
 }
 
 .camera-corner--tl {
   top: 10px; left: 10px;
-  border-top: 2px solid #00D9FF;
-  border-left: 2px solid #00D9FF;
-  border-top-left-radius: 4px;
-  box-shadow: -2px -2px 8px rgba(0, 217, 255, 0.5);
+  border-top: 2.5px solid #00D9FF;
+  border-left: 2.5px solid #00D9FF;
+  border-top-left-radius: 5px;
+  box-shadow: -2px -2px 10px rgba(0, 217, 255, 0.5);
 }
 .camera-corner--tr {
   top: 10px; right: 10px;
-  border-top: 2px solid #00D9FF;
-  border-right: 2px solid #00D9FF;
-  border-top-right-radius: 4px;
-  box-shadow: 2px -2px 8px rgba(0, 217, 255, 0.5);
+  border-top: 2.5px solid #00D9FF;
+  border-right: 2.5px solid #00D9FF;
+  border-top-right-radius: 5px;
+  box-shadow: 2px -2px 10px rgba(0, 217, 255, 0.5);
 }
 .camera-corner--bl {
   bottom: 10px; left: 10px;
-  border-bottom: 2px solid #00D9FF;
-  border-left: 2px solid #00D9FF;
-  border-bottom-left-radius: 4px;
-  box-shadow: -2px 2px 8px rgba(0, 217, 255, 0.5);
+  border-bottom: 2.5px solid #00D9FF;
+  border-left: 2.5px solid #00D9FF;
+  border-bottom-left-radius: 5px;
+  box-shadow: -2px 2px 10px rgba(0, 217, 255, 0.5);
 }
 .camera-corner--br {
   bottom: 10px; right: 10px;
-  border-bottom: 2px solid #00D9FF;
-  border-right: 2px solid #00D9FF;
-  border-bottom-right-radius: 4px;
-  box-shadow: 2px 2px 8px rgba(0, 217, 255, 0.5);
+  border-bottom: 2.5px solid #00D9FF;
+  border-right: 2.5px solid #00D9FF;
+  border-bottom-right-radius: 5px;
+  box-shadow: 2px 2px 10px rgba(0, 217, 255, 0.5);
 }
+
+/* Scan animation on corners when active */
+.camera-wrapper--active .camera-corner {
+  animation: corner-scan 2s ease-in-out infinite;
+}
+.camera-wrapper--active .camera-corner--tr { animation-delay: 0.5s; }
+.camera-wrapper--active .camera-corner--bl { animation-delay: 1s; }
+.camera-wrapper--active .camera-corner--br { animation-delay: 1.5s; }
 
 /* ── Live indicator ── */
 .camera-status {
   position: absolute;
-  top: 16px;
+  top: 14px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(7, 20, 38, 0.75);
-  border: 1px solid rgba(255, 59, 107, 0.4);
+  background: rgba(7, 20, 38, 0.8);
+  border: 1px solid rgba(255, 59, 107, 0.5);
   border-radius: 100px;
-  padding: 4px 12px;
+  padding: 4px 14px;
   z-index: 6;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 12px rgba(255, 59, 107, 0.2);
 }
 
 .camera-status__dot {
@@ -94,7 +128,7 @@
   height: 7px;
   border-radius: 50%;
   background: #FF3B6B;
-  box-shadow: 0 0 6px #FF3B6B;
+  box-shadow: 0 0 8px #FF3B6B;
   animation: live-blink 1s ease-in-out infinite;
 }
 
@@ -102,54 +136,56 @@
   font-family: 'Orbitron', monospace;
   font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
   color: #FF3B6B;
 }
 
 /* ── Photo counter ── */
 .camera-counter {
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   align-items: baseline;
   gap: 4px;
-  background: rgba(7, 20, 38, 0.8);
-  border: 1px solid rgba(0, 217, 255, 0.3);
+  background: rgba(7, 20, 38, 0.85);
+  border: 1px solid rgba(0, 217, 255, 0.4);
   border-radius: 100px;
-  padding: 6px 16px;
+  padding: 6px 18px;
   z-index: 6;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 16px rgba(0, 217, 255, 0.15);
 }
 
 .camera-counter__label {
   font-family: 'Orbitron', monospace;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: #8899AA;
-  margin-right: 4px;
+  margin-right: 5px;
 }
 
 .camera-counter__num {
   font-family: 'Orbitron', monospace;
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 900;
   color: #00D9FF;
-  text-shadow: 0 0 8px #00D9FF;
+  text-shadow: 0 0 10px #00D9FF, 0 0 20px rgba(0, 217, 255, 0.5);
+  line-height: 1;
 }
 
 .camera-counter__sep {
   font-family: 'Orbitron', monospace;
   font-size: 0.8rem;
   color: #8899AA;
-  margin: 0 2px;
+  margin: 0 3px;
 }
 
 .camera-counter__total {
   font-family: 'Orbitron', monospace;
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: #C8D4E3;
 }
@@ -170,7 +206,32 @@
   border-radius: 16px;
 }
 
+/* Moving scan beam */
+.camera-scanline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(0, 217, 255, 0.15) 20%,
+    rgba(0, 217, 255, 0.35) 50%,
+    rgba(0, 217, 255, 0.15) 80%,
+    transparent
+  );
+  animation: scan-beam 4s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+@keyframes scan-beam {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
 @keyframes live-blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.2; }
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px #FF3B6B; }
+  50%       { opacity: 0.2; box-shadow: none; }
 }

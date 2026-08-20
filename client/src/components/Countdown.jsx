@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { playBeep } from '../services/sound';
 import './Countdown.css';
 
 const STEPS = [
@@ -27,6 +28,11 @@ function Countdown({ onComplete, duration = 1 }) {
       return () => clearTimeout(t);
     }
 
+    // Play beep for numeric steps
+    if (step < STEPS.length - 1) {
+      playBeep();
+    }
+
     // Show current step, then transition out
     const showTimer = setTimeout(() => {
       setExiting(true);
@@ -46,14 +52,18 @@ function Countdown({ onComplete, duration = 1 }) {
 
   return (
     <div className="countdown-overlay" aria-live="assertive" aria-label={`Countdown: ${current.value}`}>
-      {/* Background pulse ring */}
+      {/* Background pulse rings (3 layers) */}
       <div
         className="countdown-ring"
-        style={{ borderColor: current.color + '40', boxShadow: `0 0 60px ${current.color}30` }}
+        style={{ borderColor: current.color + '80', boxShadow: `0 0 30px ${current.color}40` }}
       />
       <div
         className="countdown-ring countdown-ring--2"
-        style={{ borderColor: current.color + '20', animationDelay: '0.3s' }}
+        style={{ borderColor: current.color + '40' }}
+      />
+      <div
+        className="countdown-ring countdown-ring--3"
+        style={{ borderColor: current.color + '20' }}
       />
 
       {/* Main number */}

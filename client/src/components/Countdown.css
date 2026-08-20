@@ -7,35 +7,54 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(7, 20, 38, 0.92);
-  backdrop-filter: blur(8px);
+  background: rgba(7, 20, 38, 0.9);
+  backdrop-filter: blur(10px);
   z-index: 20;
   border-radius: 16px;
   gap: 16px;
 }
 
-/* ── Pulsing rings ── */
+/* ── Triple pulsing rings ── */
 .countdown-ring {
   position: absolute;
-  width: 220px;
-  height: 220px;
   border-radius: 50%;
   border: 2px solid;
   animation: ring-pulse 1s ease-out infinite;
   pointer-events: none;
 }
 
+/* Ring 1 — inner */
+.countdown-ring {
+  width: 200px;
+  height: 200px;
+  border-color: rgba(0, 217, 255, 0.9);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+}
+
+/* Ring 2 — middle */
 .countdown-ring--2 {
-  width: 280px;
-  height: 280px;
-  animation-delay: 0.3s;
+  width: 270px;
+  height: 270px;
+  animation-delay: 0.25s;
+  border-width: 1.5px;
+  border-color: rgba(0, 168, 255, 0.6);
+  box-shadow: none;
+}
+
+/* Ring 3 — outer */
+.countdown-ring--3 {
+  width: 340px;
+  height: 340px;
+  animation-delay: 0.5s;
   border-width: 1px;
+  border-color: rgba(124, 92, 255, 0.4);
+  box-shadow: none;
 }
 
 @keyframes ring-pulse {
-  0%   { transform: scale(0.9); opacity: 0.8; }
-  50%  { transform: scale(1);   opacity: 0.5; }
-  100% { transform: scale(1.1); opacity: 0;   }
+  0%   { transform: scale(0.85); opacity: 0.9; }
+  60%  { opacity: 0.4; }
+  100% { transform: scale(1.15); opacity: 0; }
 }
 
 /* ── Number ── */
@@ -48,6 +67,11 @@
   position: relative;
   z-index: 5;
   user-select: none;
+  color: #00D9FF;
+  text-shadow:
+    0 0 20px rgba(0, 217, 255, 1),
+    0 0 40px rgba(0, 217, 255, 0.6),
+    0 0 80px rgba(0, 217, 255, 0.3);
 }
 
 .countdown-number--enter {
@@ -59,16 +83,17 @@
 }
 
 @keyframes count-pop-in {
-  0%   { transform: scale(0.2) translateY(20px); opacity: 0; filter: blur(10px); }
-  100% { transform: scale(1)   translateY(0);    opacity: 1; filter: blur(0); }
+  0%   { transform: scale(0.15) translateY(30px); opacity: 0; filter: blur(20px); }
+  70%  { filter: blur(0); }
+  100% { transform: scale(1)    translateY(0);    opacity: 1; filter: blur(0); }
 }
 
 @keyframes count-pop-out {
   0%   { transform: scale(1);   opacity: 1; filter: blur(0); }
-  100% { transform: scale(1.8); opacity: 0; filter: blur(8px); }
+  100% { transform: scale(2.2); opacity: 0; filter: blur(12px); }
 }
 
-/* ── Label ── */
+/* ── Label card ── */
 .countdown-label {
   font-family: 'Rajdhani', sans-serif;
   font-size: clamp(1rem, 3vw, 1.6rem);
@@ -77,6 +102,12 @@
   text-transform: uppercase;
   position: relative;
   z-index: 5;
+  color: #C8D4E3;
+  background: rgba(7, 20, 38, 0.6);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  padding: 4px 16px;
+  border-radius: 100px;
+  backdrop-filter: blur(4px);
 }
 
 .countdown-label--enter {
@@ -90,7 +121,7 @@
 }
 
 @keyframes label-slide-in {
-  0%   { transform: translateY(8px);  opacity: 0; }
+  0%   { transform: translateY(10px); opacity: 0; }
   100% { transform: translateY(0);    opacity: 1; }
 }
 
@@ -114,13 +145,18 @@
   border-radius: 50%;
   background: rgba(200, 212, 227, 0.2);
   border: 1px solid rgba(200, 212, 227, 0.2);
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .countdown-dot--active {
-  transform: scale(1.4);
+  transform: scale(1.5);
+  background: #00D9FF;
+  border-color: #00D9FF;
+  box-shadow: 0 0 8px #00D9FF;
 }
 
 .countdown-dot--done {
-  opacity: 0.5;
+  opacity: 0.35;
+  background: rgba(0, 217, 255, 0.3);
+  border-color: rgba(0, 217, 255, 0.3);
 }

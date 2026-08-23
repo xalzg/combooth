@@ -6,7 +6,7 @@
   z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 50%, var(--deep-navy) 0%, var(--navy-blue) 70%);
+  background: var(--bg-primary);
 }
 
 /* ── SVG Circuit Lines ── */
@@ -19,99 +19,43 @@
 
 .circuit-branch polyline {
   fill: none;
-  stroke: #00A8FF;
-  stroke-width: 1.5;
-  stroke-dasharray: 1000;
-  stroke-dashoffset: 1000;
-  animation: circuit-flow 4s ease-in-out infinite;
-  opacity: 0.35;
+  stroke: var(--black);
+  stroke-width: 2;
+  opacity: 0.8;
 }
 
 .circuit-branch circle {
-  fill: #00D9FF;
-  opacity: 0.6;
-  animation: pulse-dot 2s ease-in-out infinite;
+  fill: var(--primary);
+  stroke: var(--black);
+  stroke-width: 2;
+  opacity: 1;
 }
 
-.circuit-branch:nth-child(2) polyline { animation-delay: 0.8s;  animation-duration: 4.5s; stroke: #00D9FF; }
-.circuit-branch:nth-child(3) polyline { animation-delay: 1.6s;  animation-duration: 5s;   stroke: #7C5CFF; }
-.circuit-branch:nth-child(4) polyline { animation-delay: 2.4s;  animation-duration: 4.2s; stroke: #00A8FF; }
-.circuit-branch:nth-child(5) polyline { animation-delay: 1.2s;  animation-duration: 3.8s; stroke: #00D9FF; }
-.circuit-branch:nth-child(6) polyline { animation-delay: 2.0s;  animation-duration: 4.8s; stroke: #00A8FF; }
-
-/* ── Floating Particles ── */
 .circuit-particles {
-  position: absolute;
-  inset: 0;
-}
-
-.circuit-particle {
-  position: absolute;
-  border-radius: 50%;
-  background: #00D9FF;
-  box-shadow: 0 0 6px #00D9FF, 0 0 12px #00A8FF;
-  animation: particle-float linear infinite;
+  display: none;
 }
 
 /* ── Center Radial Glow ── */
 .circuit-center-glow {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60vw;
-  height: 60vw;
-  max-width: 800px;
-  max-height: 800px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(0, 168, 255, 0.04) 0%,
-    rgba(0, 168, 255, 0.02) 40%,
-    transparent 70%
-  );
-  animation: glow-pulse 4s ease-in-out infinite;
+  display: none;
 }
 
 /* ── Grid Dots ── */
 .circuit-grid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(0, 168, 255, 0.12) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse at center, transparent 30%, black 80%);
-  -webkit-mask-image: radial-gradient(ellipse at center, transparent 30%, black 80%);
+  background-image: radial-gradient(circle, var(--black) 2px, transparent 2px);
+  background-size: 32px 32px;
+  opacity: 0.1;
 }
 
 /* ── Variants ── */
 .circuit-bg--camera {
-  background: radial-gradient(ellipse at 50% 30%, var(--navy-mid) 0%, var(--deep-navy) 70%);
+  background: var(--bg-primary);
 }
 
 .circuit-bg--result {
-  background: radial-gradient(ellipse at 50% 60%, var(--navy-blue) 0%, var(--deep-navy) 70%);
+  background: var(--bg-primary);
 }
 
 /* ── Keyframes ── */
-@keyframes circuit-flow {
-  0%   { stroke-dashoffset: 1000; opacity: 0.1; }
-  30%  { opacity: 0.5; }
-  70%  { opacity: 0.4; }
-  100% { stroke-dashoffset: 0;    opacity: 0.1; }
-}
-
-@keyframes pulse-dot {
-  0%, 100% { opacity: 0.6; r: 4px; }
-  50%       { opacity: 1;   r: 5px; filter: drop-shadow(0 0 4px #00D9FF); }
-}
-
-@keyframes particle-float {
-  0%   { transform: translateY(0)   scale(1);   opacity: 0.7; }
-  50%  { transform: translateY(-30px) scale(1.2); opacity: 1;   }
-  100% { transform: translateY(0)   scale(1);   opacity: 0.7; }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-  50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.05); }
-}

@@ -6,7 +6,7 @@
  * never break the user experience).
  */
 
-const SERVER = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const SERVER = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
 
 /**
  * Post a session event to the analytics endpoint.

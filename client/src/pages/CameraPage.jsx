@@ -151,7 +151,8 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
       
       // Attempt to send email in background
       setEmailStatus('sending');
-      fetch('http://localhost:3001/api/send-email', {
+      const SERVER = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
+      fetch(`${SERVER}/api/send-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

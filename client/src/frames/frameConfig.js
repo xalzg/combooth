@@ -90,6 +90,38 @@ export const FRAMES = [
       bottomText: 'KABINET AVANTERA',
       orgText:    'Community of Information Technology',
     },
+  },
+  {
+    id:          'avantera-4',
+    name:        'Kabinet Avantera 4',
+    subtitle:    'Robot Edition',
+    description: 'Frame vertikal dengan nuansa neon biru dan robot lucu.',
+    previewBg:   'var(--bg-primary)',
+    accentColor: '#1A73E8',
+    overlayColor: '#00D9FF',
+    canvas:      { width: CANVAS_W, height: CANVAS_H },
+    image:       '/src/assets/frames/avantera_4.png',
+    branding: {
+      topText:    'COMIT BOOTH',
+      bottomText: 'KABINET AVANTERA',
+      orgText:    'Community of Information Technology',
+    },
+  },
+  {
+    id:          'avantera-5',
+    name:        'Kabinet Avantera 5',
+    subtitle:    'Cyber Edition',
+    description: 'Frame vertikal dengan desain cyber robot futuristik.',
+    previewBg:   'var(--bg-primary)',
+    accentColor: '#1A73E8',
+    overlayColor: '#00D9FF',
+    canvas:      { width: CANVAS_W, height: CANVAS_H },
+    image:       '/src/assets/frames/avantera_5.png',
+    branding: {
+      topText:    'COMIT BOOTH',
+      bottomText: 'KABINET AVANTERA',
+      orgText:    'Community of Information Technology',
+    },
   }
 ];
 

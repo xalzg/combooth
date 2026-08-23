@@ -1,6 +1,6 @@
 /* SelectFrame.css */
 
-.select-frame-page { background: var(--deep-navy); }
+.select-frame-page { background: var(--bg-primary); }
 
 /* ── Main content ── */
 .select-frame-content {
@@ -33,19 +33,18 @@
   align-items: center;
   gap: 10px;
   padding: 8px 20px;
-  border-radius: 100px;
-  background: rgba(0, 168, 255, 0.08);
-  border: 1px solid rgba(0, 217, 255, 0.35);
-  backdrop-filter: blur(12px);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  border: var(--border-dark);
+  box-shadow: var(--shadow-hard-sm);
   animation: scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .selected-info__text {
   font-family: var(--font-accent);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--silver);
-  letter-spacing: 0.04em;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--black);
 }
 
 /* ── Continue button area ── */

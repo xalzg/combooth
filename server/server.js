@@ -196,9 +196,13 @@ app.get('*', (_req, res) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`\n🚀 COMIT Booth Server running on http://localhost:${PORT}`);
-  console.log(`   Health:    http://localhost:${PORT}/api/health`);
-  console.log(`   Frames:    http://localhost:${PORT}/api/frames`);
-  console.log(`   Analytics: http://localhost:${PORT}/api/analytics\n`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`\n🚀 COMIT Booth Server running on http://localhost:${PORT}`);
+    console.log(`   Health:    http://localhost:${PORT}/api/health`);
+    console.log(`   Frames:    http://localhost:${PORT}/api/frames`);
+    console.log(`   Analytics: http://localhost:${PORT}/api/analytics\n`);
+  });
+}
+
+export default app;

@@ -8,7 +8,14 @@
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "npm run build --prefix client",
+    "vercel-build": "npm run build --prefix client && cp -R client/dist public",
     "start": "npm start --prefix server"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "nodemailer": "^9.0.5"
   },
   "devDependencies": {
     "concurrently": "^10.0.5"

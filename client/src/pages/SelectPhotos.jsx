@@ -46,7 +46,7 @@ function SelectPhotos({ onPhotoCountSelect, photoCount, selectedFrame }) {
   };
 
   const handleContinue = () => {
-    if (photoCount) navigate('/camera');
+    if (photoCount) navigate('/enter-email');
   };
 
   if (!selectedFrame) {

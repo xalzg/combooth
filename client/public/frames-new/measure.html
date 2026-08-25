@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <img id="img" src="frame-2.png" onload="measure()" crossorigin="anonymous">
+  <canvas id="canvas"></canvas>
+  <div id="out"></div>
+  <script>
+    function measure() {
+      const img = document.getElementById('img');
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      
+      let minX1 = 9999, maxX1 = 0, minY1 = 9999, maxY1 = 0; // slot 1 (top half)
+      let minX2 = 9999, maxX2 = 0, minY2 = 9999, maxY2 = 0; // slot 2 (bottom half)
+      
+      for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+          const i = (y * canvas.width + x) * 4;
+          const r = data[i], g = data[i+1], b = data[i+2];
+          // Grey color is ~ #cfd0d2 => r=207, g=208, b=210
+          if (r > 190 && r < 220 && g > 190 && g < 220 && b > 190 && b < 220) {
+            if (y < canvas.height / 2) {
+              if (x < minX1) minX1 = x;
+              if (x > maxX1) maxX1 = x;
+              if (y < minY1) minY1 = y;
+              if (y > maxY1) maxY1 = y;
+            } else {
+              if (x < minX2) minX2 = x;
+              if (x > maxX2) maxX2 = x;
+              if (y < minY2) minY2 = y;
+              if (y > maxY2) maxY2 = y;
+            }
+          }
+        }
+      }
+      
+      document.getElementById('out').innerText = JSON.stringify([
+        { x: minX1, y: minY1, width: maxX1 - minX1, height: maxY1 - minY1 },
+        { x: minX2, y: minY2, width: maxX2 - minX2, height: maxY2 - minY2 }
+      ]);
+    }
+  </script>
+</body>
+</html>

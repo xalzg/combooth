@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Home           from './pages/Home';
 import SelectFrame   from './pages/SelectFrame';
-import SelectPhotos  from './pages/SelectPhotos';
+import EnterEmail    from './pages/EnterEmail';
+import SetupPage     from './pages/SetupPage/SetupPage';
 import CameraPage    from './pages/CameraPage';
 import AdminDashboard from './pages/AdminDashboard';
-import EnterEmail     from './pages/EnterEmail';
 import './index.css';
 import './App.css';
 
@@ -17,43 +17,46 @@ import './App.css';
  *
  * State:
  *  - selectedFrame:  Frame config object (from frameConfig.js)
- *  - photoCount:     number 1–4
  */
 function App() {
   const [selectedFrame, setSelectedFrame] = useState(null);
-  const [photoCount,    setPhotoCount]    = useState(4); // default 4
   const [userEmail,     setUserEmail]     = useState('');
+  const [setupData,     setSetupData]     = useState({ filter: null, stickers: [] });
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
 
-        <Route 
-          path="/enter-email" 
-          element={<EnterEmail onEmailSubmit={setUserEmail} />} 
-        />
-
         <Route
           path="/select-frame"
           element={
-            userEmail
-              ? <SelectFrame
-                  selectedFrame={selectedFrame}
-                  onFrameSelect={setSelectedFrame}
-                />
-              : <Navigate to="/enter-email" replace />
+            <SelectFrame
+              selectedFrame={selectedFrame}
+              onFrameSelect={setSelectedFrame}
+            />
           }
         />
 
-        <Route
-          path="/select-photos"
+
+
+        <Route 
+          path="/enter-email" 
           element={
-            selectedFrame
-              ? <SelectPhotos
-                  photoCount={photoCount}
-                  onPhotoCountSelect={setPhotoCount}
+            selectedFrame 
+              ? <EnterEmail onEmailSubmit={setUserEmail} />
+              : <Navigate to="/select-frame" replace />
+          } 
+        />
+
+        <Route
+          path="/setup"
+          element={
+            selectedFrame && userEmail
+              ? <SetupPage
                   selectedFrame={selectedFrame}
+                  photoCount={selectedFrame.photoCount}
+                  onComplete={(data) => setSetupData(data)}
                 />
               : <Navigate to="/select-frame" replace />
           }
@@ -62,10 +65,11 @@ function App() {
         <Route
           path="/camera"
           element={
-            selectedFrame && photoCount && userEmail
+            selectedFrame && userEmail
               ? <CameraPage
                   selectedFrame={selectedFrame}
-                  photoCount={photoCount}
+                  photoCount={selectedFrame.photoCount}
+                  setupData={setupData}
                   userEmail={userEmail}
                 />
               : <Navigate to="/select-frame" replace />

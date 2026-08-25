@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <script>
+    async function measure() {
+      const frames = [
+        'y2k-player.png',
+        'one-community-4.png',
+        'one-community-3.png',
+        'live-report-1.png'
+      ];
+      
+      const results = {};
+      
+      for (const frame of frames) {
+        await new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+            const slots = [];
+            
+            let visited = new Uint8Array(canvas.width * canvas.height);
+            
+            for (let y = 0; y < canvas.height; y++) {
+              for (let x = 0; x < canvas.width; x++) {
+                const idx = (y * canvas.width + x) * 4;
+                const a = data[idx + 3];
+                
+                if (a < 50 && !visited[y * canvas.width + x]) {
+                  let minX = x, maxX = x, minY = y, maxY = y;
+                  let q = [[x, y]];
+                  visited[y * canvas.width + x] = 1;
+                  
+                  let area = 0;
+                  
+                  while (q.length > 0) {
+                    const [cx, cy] = q.shift();
+                    area++;
+                    
+                    if (cx < minX) minX = cx;
+                    if (cx > maxX) maxX = cx;
+                    if (cy < minY) minY = cy;
+                    if (cy > maxY) maxY = cy;
+                    
+                    const neighbors = [
+                      [cx+1, cy], [cx-1, cy], [cx, cy+1], [cx, cy-1]
+                    ];
+                    
+                    for (const [nx, ny] of neighbors) {
+                      if (nx >= 0 && nx < canvas.width && ny >= 0 && ny < canvas.height) {
+                        if (!visited[ny * canvas.width + nx]) {
+                          const nidx = (ny * canvas.width + nx) * 4;
+                          if (data[nidx + 3] < 50) {
+                            visited[ny * canvas.width + nx] = 1;
+                            q.push([nx, ny]);
+                          }
+                        }
+                      }
+                    }
+                  }
+                  
+                  if (area > (canvas.width * canvas.height * 0.01)) {
+                    slots.push({
+                      x: (minX / canvas.width * 100).toFixed(2),
+                      y: (minY / canvas.height * 100).toFixed(2),
+                      width: ((maxX - minX + 1) / canvas.width * 100).toFixed(2),
+                      height: ((maxY - minY + 1) / canvas.height * 100).toFixed(2)
+                    });
+                  }
+                }
+              }
+            }
+            
+            results[frame] = {
+              width: canvas.width,
+              height: canvas.height,
+              slots
+            };
+            resolve();
+          };
+          img.src = '/frames/' + frame;
+        });
+      }
+      
+      document.body.innerText = 'RESULTS_JSON:' + JSON.stringify(results);
+    }
+    
+    measure();
+  </script>
+</body>
+</html>

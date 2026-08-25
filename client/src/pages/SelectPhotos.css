@@ -1,6 +1,6 @@
 /* SelectPhotos.css */
 
-.select-photos-page { background: var(--bg-primary); }
+.select-photos-page { background: var(--deep-navy); }
 
 .select-photos-content {
   gap: 28px;
@@ -39,45 +39,44 @@
   align-items: center;
   gap: 12px;
   padding: 20px 16px 16px;
-  background: var(--white);
-  border: var(--border-dark);
-  border-radius: var(--radius-md);
+  background: #fff;
+  border: 4px solid #000;
+  border-radius: 8px;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: all 0.2s ease;
   text-align: center;
   overflow: hidden;
-  box-shadow: var(--shadow-hard-sm);
+  box-shadow: 4px 4px 0px rgba(0,0,0,1);
 }
 
 .count-card:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: var(--shadow-hard);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0,0,0,1);
 }
 
 .count-card--selected {
-  background: var(--primary) !important;
-  box-shadow: var(--shadow-hard) !important;
-  transform: translate(-4px, -4px);
+  background: #f4f4f4 !important;
+  box-shadow: inset 4px 4px 0px rgba(0,0,0,0.1), 0 0 0 rgba(0,0,0,1) !important;
+  transform: translate(4px, 4px) !important;
 }
 
 .count-card--recommended {
-  border-color: var(--black);
+  border-color: #000;
 }
 
 /* ── Recommended badge ── */
 .count-card__rec-badge {
   position: absolute;
   top: 10px;
-  right: -3px;
-  background: var(--tertiary);
-  color: var(--black);
-  font-family: var(--font-display);
+  right: -4px;
+  background: #ffeb3b;
+  color: #000;
+  border: 2px solid #000;
+  font-family: inherit;
   font-size: 0.6rem;
-  font-weight: 900;
+  font-weight: 800;
+  letter-spacing: 0.06em;
   padding: 3px 10px;
-  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-  border: var(--border-dark);
-  border-right: none;
   z-index: 2;
 }
 
@@ -100,24 +99,28 @@
 }
 
 .count-card__label {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 900;
-  color: var(--black);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #000;
+  letter-spacing: 0.05em;
+}
+
+.count-card--selected .count-card__label {
+  color: #333;
 }
 
 .count-card__desc {
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #555;
 }
 
 .count-card__layout {
-  font-family: var(--font-accent);
-  font-size: 0.75rem;
-  color: var(--black);
-  font-weight: 800;
+  font-family: inherit;
+  font-size: 0.7rem;
+  color: #000;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -129,9 +132,8 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--white);
-  border: var(--border-dark);
-  animation: dot-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  background: #000;
+  animation: dot-pop 0.2s ease forwards;
   z-index: 3;
 }
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CircuitBackground from '../components/CircuitBackground';
 import mascotImg from '../assets/mascot.jpg';
 import './Home.css';
 
@@ -36,8 +35,6 @@ function Home() {
 
   return (
     <div className="page home-page">
-      <CircuitBackground variant="default" />
-
       {/* Header */}
       <header className="app-header">
         <div>
@@ -120,7 +117,7 @@ function Home() {
           <button
             id="btn-start"
             className="btn btn-primary btn-lg home-start-btn"
-            onClick={() => navigate('/enter-email')}
+            onClick={() => navigate('/select-frame')}
           >
             <span>MULAI FOTO</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

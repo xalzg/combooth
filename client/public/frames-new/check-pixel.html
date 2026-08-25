@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <img id="img" src="frame-1.png" onload="check()" crossorigin="anonymous">
+  <canvas id="canvas"></canvas>
+  <div id="out"></div>
+  <script>
+    function check() {
+      const img = document.getElementById('img');
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      
+      const cx = 347;
+      const cy = 496;
+      const data = ctx.getImageData(cx, cy, 1, 1).data;
+      
+      document.getElementById('out').innerText = `RGBA: ${data[0]}, ${data[1]}, ${data[2]}, ${data[3]}`;
+    }
+  </script>
+</body>
+</html>

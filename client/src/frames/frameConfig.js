@@ -1,6 +1,6 @@
 /**
  * frameConfig.js — COMIT Booth Frame Registry
- * Portrait Mode (9:16) for Kabinet Avantera
+ * Portrait Mode (9:16)
  */
 
 export const CANVAS_W = 1080;
@@ -8,51 +8,52 @@ export const CANVAS_H = 1920;
 
 // ── Slot layout generators ─────────────────────────────────────────────────
 
-function getPortraitSlots(count) {
-  // For Kabinet Avantera, we focus on a 2x2 grid in the center
-  // 400x300 photos (4:3 aspect ratio)
-  // X: 120 and 560
-  // Y: 600 and 940
-  const slots = [
-    { x: 120, y: 600, width: 400, height: 300 },
-    { x: 560, y: 600, width: 400, height: 300 },
-    { x: 120, y: 940, width: 400, height: 300 },
-    { x: 560, y: 940, width: 400, height: 300 },
-  ];
+function getSlotsForFrame(frameId) {
+  if (frameId === 'frame-1') { // Live Report (1 slot)
+    return [{ x: 104, y: 153, width: 486, height: 686 }];
+  }
   
-  if (count === 1) {
-    return [{ x: 240, y: 660, width: 600, height: 600 }]; // 1 big square
-  }
-  if (count === 2) {
+  if (frameId === 'frame-2') { // Blue texture (2 slots)
     return [
-      { x: 340, y: 600, width: 400, height: 300 },
-      { x: 340, y: 940, width: 400, height: 300 },
-    ];
-  }
-  if (count === 3) {
-    return [
-      { x: 340, y: 550, width: 400, height: 300 },
-      { x: 340, y: 880, width: 400, height: 300 },
-      { x: 340, y: 1210, width: 400, height: 300 },
+      { x: 14, y: 75, width: 594, height: 368 },
+      { x: 14, y: 444, width: 594, height: 407 }
     ];
   }
   
-  return slots;
+  if (frameId === 'frame-3a' || frameId === 'frame-3b') { // Diagonal stripes (3 slots)
+    return [
+      { x: 58, y: 82, width: 466, height: 266 },
+      { x: 58, y: 368, width: 466, height: 266 },
+      { x: 58, y: 654, width: 466, height: 266 },
+    ];
+  }
+  
+  if (frameId === 'frame-4') { // Building Background (4 slots)
+    return [
+      { x: 50, y: 50, width: 400, height: 220 },
+      { x: 50, y: 290, width: 400, height: 220 },
+      { x: 50, y: 530, width: 400, height: 220 },
+      { x: 50, y: 770, width: 400, height: 220 },
+    ];
+  }
+  
+  return [{ x: 140, y: 300, width: 800, height: 1066 }];
 }
 
 // ── Frame definitions ──────────────────────────────────────────────────────
 
 export const FRAMES = [
   {
-    id:          'avantera-1',
-    name:        'Kabinet Avantera 1',
-    subtitle:    'Future In Motion',
-    description: 'Frame vertikal dengan desain elegan arch neon dan panggung holografis.',
-    previewBg:   'linear-gradient(135deg, var(--deep-navy) 0%, var(--navy-mid) 100%)',
-    accentColor: '#1A73E8',
-    overlayColor: '#00D9FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    image:       '/frames/avantera_1.jpg',
+    id:          'frame-1',
+    name:        'Live Report',
+    subtitle:    '1 Photo Edition',
+    description: 'Frame bergaya koran dengan 1 slot foto besar.',
+    photoCount:  1,
+    previewBg:   '#888888',
+    accentColor: '#FF3333',
+    overlayColor: '#FFFFFF',
+    canvas:      { width: 695, height: 1024 },
+    image:       '/frames-new/frame-1.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',
@@ -60,15 +61,16 @@ export const FRAMES = [
     },
   },
   {
-    id:          'avantera-2',
-    name:        'Kabinet Avantera 2',
-    subtitle:    'Innovation Edition',
-    description: 'Frame vertikal dengan desain elegan arch neon dan tata letak dinamis.',
-    previewBg:   'linear-gradient(135deg, var(--navy-mid) 0%, var(--navy-blue) 100%)',
+    id:          'frame-2',
+    name:        'COMIT Two-Tone',
+    subtitle:    '2 Photos Edition',
+    description: 'Frame dengan 2 slot foto horizontal.',
+    photoCount:  2,
+    previewBg:   '#8ABCEB',
     accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    image:       '/frames/avantera_2.jpg',
+    canvas:      { width: 612, height: 887 },
+    image:       '/frames-new/frame-2.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',
@@ -76,15 +78,16 @@ export const FRAMES = [
     },
   },
   {
-    id:          'avantera-3',
-    name:        'Kabinet Avantera 3',
-    subtitle:    'Technology Edition',
-    description: 'Frame vertikal dengan nuansa neon biru elektrik khas COMIT.',
-    previewBg:   'linear-gradient(135deg, var(--navy-blue) 0%, var(--deep-navy) 100%)',
+    id:          'frame-3a',
+    name:        'Blue Stripes',
+    subtitle:    '3 Photos Edition',
+    description: 'Frame dengan 3 slot foto horizontal.',
+    photoCount:  3,
+    previewBg:   '#4379C3',
     accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    image:       '/frames/avantera_3.jpg',
+    canvas:      { width: 583, height: 1024 },
+    image:       '/frames-new/frame-3.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',
@@ -92,15 +95,16 @@ export const FRAMES = [
     },
   },
   {
-    id:          'avantera-4',
-    name:        'Kabinet Avantera 4',
-    subtitle:    'Robot Edition',
-    description: 'Frame vertikal dengan nuansa neon biru dan robot lucu.',
-    previewBg:   'var(--bg-primary)',
+    id:          'frame-3b',
+    name:        'Blue Stripes (Variant)',
+    subtitle:    '3 Photos Edition',
+    description: 'Frame dengan 3 slot foto horizontal.',
+    photoCount:  3,
+    previewBg:   '#4379C3',
     accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    image:       '/frames/avantera_4.png',
+    canvas:      { width: 583, height: 1024 },
+    image:       '/frames-new/frame-3.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',
@@ -108,15 +112,16 @@ export const FRAMES = [
     },
   },
   {
-    id:          'avantera-5',
-    name:        'Kabinet Avantera 5',
-    subtitle:    'Cyber Edition',
-    description: 'Frame vertikal dengan desain cyber robot futuristik.',
-    previewBg:   'var(--bg-primary)',
+    id:          'frame-4',
+    name:        'One Community',
+    subtitle:    '4 Photos Edition',
+    description: 'Frame dengan 4 slot foto dan maskot COMIT.',
+    photoCount:  4,
+    previewBg:   '#8ABCEB',
     accentColor: '#1A73E8',
     overlayColor: '#00D9FF',
-    canvas:      { width: CANVAS_W, height: CANVAS_H },
-    image:       '/frames/avantera_5.png',
+    canvas:      { width: 500, height: 1024 },
+    image:       '/frames-new/frame-4.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',
@@ -125,14 +130,10 @@ export const FRAMES = [
   }
 ];
 
-/**
- * Get photo slot positions for a given frame and count.
- */
-export function getFrameSlots(_frameId, count) {
-  return getPortraitSlots(count);
+export function getFrameSlots(frameId, count) {
+  return getSlotsForFrame(frameId);
 }
 
-/** Get frame config by ID */
 export function getFrameById(id) {
   return FRAMES.find(f => f.id === id);
 }

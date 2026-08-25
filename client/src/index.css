@@ -1,6 +1,6 @@
 /* ============================================================
    COMIT BOOTH — Global Design System
-   Dark Futuristic × Electric Blue × Glassmorphism
+   One Community, One Vision
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Rajdhani:wght@400;500;600;700&display=swap');
@@ -9,12 +9,13 @@
 :root {
   --bg-primary:    #FDF5EB; /* Light Beige */
   --bg-secondary:  #F4E8D6; 
-  --text-main:     #000000;
-  --text-muted:    #444444;
+  --text-main:     #111111;
+  --text-muted:    #555555;
   
   --primary:       #FFCC00; /* Yellow */
   --secondary:     #FF66B2; /* Pink */
   --tertiary:      #00E5FF; /* Teal */
+  --brand-blue:    #1A73E8; /* Comit Blue */
   --danger:        #FF3333;
   --success:       #00CC66;
   --white:         #FFFFFF;
@@ -32,6 +33,7 @@
   --shadow-hard-active: 0px 0px 0px #000000;
   
   --shadow-hard-lg: 8px 8px 0px #000000;
+  --shadow-hard-sm: 2px 2px 0px #000000;
 
   --radius-sm:  4px;
   --radius-md:  8px;
@@ -56,7 +58,8 @@ html {
 }
 
 body {
-  background-color: var(--bg-primary);
+  background-color: var(--white);
+  background-image: repeating-linear-gradient(to right, transparent, transparent 78px, #0F172A 78px, #0F172A 80px);
   color: var(--text-main);
   font-family: var(--font-body);
   font-size: 16px;
@@ -248,15 +251,15 @@ p { font-family: var(--font-body); color: var(--text-muted); font-weight: 500; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
   border: var(--border-dark);
   color: var(--black);
-  background: var(--primary);
+  background: var(--white);
   box-shadow: var(--shadow-hard-sm);
 }
 

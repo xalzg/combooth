@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <img id="img" src="frame-1.png" onload="check()" crossorigin="anonymous">
+  <canvas id="canvas"></canvas>
+  <div id="out"></div>
+  <script>
+    function check() {
+      const img = document.getElementById('img');
+      const canvas = document.getElementById('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      
+      let hasAlpha = false;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] < 255) {
+          hasAlpha = true;
+          break;
+        }
+      }
+      document.getElementById('out').innerText = hasAlpha ? 'HAS_ALPHA' : 'NO_ALPHA';
+    }
+  </script>
+</body>
+</html>

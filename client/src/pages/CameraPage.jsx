@@ -4,9 +4,10 @@ import CircuitBackground from '../components/CircuitBackground';
 import Camera from '../components/Camera';
 import Countdown from '../components/Countdown';
 import PhotoPreview from '../components/PhotoPreview';
+import { getFrameSlots } from '../frames/frameConfig';
 import { startCamera, stopCamera, captureFrame } from '../services/camera';
-import { composePhotos, downloadCanvas, downloadCanvasPNG, generateFilename, printCanvas } from '../services/composer';
-import QRWidget from '../components/QRWidget';
+import { composePhotos, applyEditorChanges, bakeStickersOntoPhoto, downloadCanvas, downloadCanvasPNG, generateFilename, printCanvas } from '../services/composer';
+import { initFaceTracking, detectFace, getLandmarks, getFeatureCoordinates } from '../services/faceTracking';
 import { trackSession } from '../services/analytics';
 import { playShutter, playSuccess } from '../services/sound';
 import './CameraPage.css';
@@ -18,11 +19,12 @@ const STATES = {
   CAPTURING:  'CAPTURING',
   REVIEWING:  'REVIEWING',
   PROCESSING: 'PROCESSING',
+  SAVE:       'SAVE',
   DONE:       'DONE',
   ERROR:      'ERROR',
 };
 
-function CameraPage({ selectedFrame, photoCount, userEmail }) {
+function CameraPage({ selectedFrame, photoCount, setupData, userEmail }) {
   const navigate = useNavigate();
 
   const [uiState,     setUiState]     = useState(STATES.SETUP);
@@ -35,6 +37,24 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
   const [flashActive, setFlashActive] = useState(false);
   const [isMirrored,  setIsMirrored]  = useState(true);
   const [emailStatus, setEmailStatus] = useState(''); // '', 'sending', 'sent', 'error'
+  const [liveStickers, setLiveStickers] = useState(setupData?.stickers || []);
+  const liveStickersRef = useRef(liveStickers);
+
+  const slots = getFrameSlots(selectedFrame?.id, photoCount);
+  const isPortrait = slots[0] && slots[0].height > slots[0].width;
+  const slotAspectRatio = slots[0] ? `${slots[0].width} / ${slots[0].height}` : '16 / 9';
+  
+  const boxStyle = {
+    aspectRatio: slotAspectRatio,
+    height: isPortrait ? '65vh' : 'auto',
+    width: isPortrait ? 'auto' : '100%',
+    maxHeight: '65vh',
+    maxWidth: '900px'
+  };
+
+  useEffect(() => {
+    liveStickersRef.current = liveStickers;
+  }, [liveStickers]);
 
   const videoRef  = useRef(null);
   const streamRef = useRef(null);
@@ -84,6 +104,66 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
     }
   }, [uiState]);
 
+  // Face Tracking Loop for CameraPage
+  useEffect(() => {
+    let isRunning = true;
+    let rafId;
+
+    const runTracker = async () => {
+      const v = videoRef.current;
+      if (!v || uiState !== STATES.READY && uiState !== STATES.COUNTDOWN && uiState !== STATES.CAPTURING) {
+        if (isRunning) rafId = requestAnimationFrame(runTracker);
+        return;
+      }
+      
+      const time = performance.now();
+      const results = detectFace(v, time);
+      const landmarks = getLandmarks(results);
+      
+      if (landmarks) {
+        const vWidth = v.videoWidth || 640;
+        const vHeight = v.videoHeight || 480;
+
+        setLiveStickers(prev => {
+          let hasChanges = false;
+          const next = prev.map(conf => {
+            if (!conf.isTracked) return conf;
+            
+            const coords = getFeatureCoordinates(landmarks, vWidth, vHeight, conf.sticker.trackType, isMirrored);
+            if (coords) {
+              hasChanges = true;
+              return {
+                ...conf,
+                x: coords.x,
+                y: coords.y,
+                width: coords.width,
+                height: coords.height,
+                rotation: coords.rotation
+              };
+            }
+            return conf;
+          });
+          return hasChanges ? next : prev;
+        });
+      }
+      
+      if (isRunning) {
+        rafId = requestAnimationFrame(runTracker);
+      }
+    };
+
+    if (uiState === STATES.READY || uiState === STATES.COUNTDOWN || uiState === STATES.CAPTURING) {
+      initFaceTracking().then(() => {
+        if (isRunning) runTracker();
+      });
+    }
+
+    return () => {
+      isRunning = false;
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [uiState]);
+
   // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleStartCapture = useCallback(() => {
@@ -96,12 +176,12 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
     playShutter();
     setTimeout(() => setFlashActive(false), 350);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       try {
         const v = videoRef.current;
         if (!v || !v.videoWidth) throw new Error('no video');
 
-        const dataUrl = captureFrame(v);
+        const dataUrl = await bakeStickersOntoPhoto(v, liveStickersRef.current, isMirrored);
 
         setPhotos(prev => {
           const next = [...prev];
@@ -146,26 +226,37 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
     setProgress(0);
     setEmailStatus('');
     try {
-      const canvas = await composePhotos(photos, selectedFrame, photoCount, pct => setProgress(pct));
-      setFinalCanvas(canvas);
+      // 1. Compose base photos
+      const baseCanvas = await composePhotos(photos, selectedFrame, photoCount, pct => setProgress(pct * 0.5));
       
-      // Attempt to send email in background
-      setEmailStatus('sending');
-      const SERVER = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:3001');
-      fetch(`${SERVER}/api/send-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: userEmail,
-          imageBase64: canvas.toDataURL('image/jpeg', 0.95),
-          frameName: selectedFrame.name
-        })
-      }).then(res => {
-        if (res.ok) setEmailStatus('sent');
-        else setEmailStatus('error');
-      }).catch(() => setEmailStatus('error'));
+      // 2. Apply chosen filters
+      const finalFilterAndStickers = {
+        filter: setupData?.filter || { css: 'none' },
+        stickers: [] // Stickers are already baked into the photos!
+      };
+      
+      const editedCanvas = await applyEditorChanges(baseCanvas, finalFilterAndStickers, pct => setProgress(50 + pct * 0.5));
+      
+      setFinalCanvas(editedCanvas);
+      
+      // 3. Attempt to send email in background
+      if (userEmail) {
+        setEmailStatus('sending');
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: userEmail,
+            imageBase64: editedCanvas.toDataURL('image/jpeg', 0.95),
+            frameName: selectedFrame.name
+          })
+        }).then(res => {
+          if (res.ok) setEmailStatus('sent');
+          else setEmailStatus('error');
+        }).catch(() => setEmailStatus('error'));
+      }
 
-      setUiState(STATES.DONE);
+      setUiState(STATES.SAVE);
       playSuccess();
       trackSession('complete', selectedFrame?.id, photoCount);
     } catch (err) {
@@ -173,7 +264,16 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
       setErrorMsg('COMPOSE_ERROR');
       setUiState(STATES.ERROR);
     }
-  }, [photos, selectedFrame, photoCount, userEmail]);
+  }, [photos, selectedFrame, photoCount, setupData, userEmail]);
+
+  const handleSaveClick = useCallback(() => {
+    if (finalCanvas) {
+      downloadCanvasPNG(finalCanvas, generateFilename('png'));
+      trackSession('download', selectedFrame?.id, photoCount);
+      setUiState(STATES.DONE);
+      playSuccess();
+    }
+  }, [finalCanvas, selectedFrame, photoCount]);
 
   const handleDownloadJPG = useCallback(() => {
     if (finalCanvas) {
@@ -230,283 +330,145 @@ function CameraPage({ selectedFrame, photoCount, userEmail }) {
   const displayIdx    = retakeIdx !== null ? retakeIdx : currentIdx;
 
   return (
-    <div className="page camera-page">
-      <CircuitBackground variant="camera" />
-
-      {/* Header */}
-      <header className="app-header">
-        <div>
-          <div className="logo-text">COMIT BOOTH</div>
-          <div className="org-text">Community of Information Technology</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {selectedFrame && (
-            <span style={{ fontFamily: 'Orbitron', fontSize: '0.65rem', color: selectedFrame.accentColor, fontWeight: 700 }}>
-              ◆ {selectedFrame.name}
-            </span>
-          )}
-          <button className="btn btn-ghost btn-sm" onClick={() => { stopCamera(); navigate('/select-photos'); }} id="btn-back-photos">
-            ← Kembali
-          </button>
-        </div>
-      </header>
-
-      {/* ─────────────────────────────────────────────────────────────────────
-          CAMERA SECTION — ALWAYS IN DOM (off-screen when not in photo states)
-          This is CRITICAL: keeps videoRef.current populated so startCamera
-          can attach the MediaStream to the video element.
-          ───────────────────────────────────────────────────────────────────── */}
-      <div className={`camera-always-wrapper ${isPhotoTaking ? 'camera-always-wrapper--visible' : 'camera-always-wrapper--hidden'}`}>
-        <div className="camera-viewport">
-          <Camera
-            videoRef={videoRef}
-            mirrored={isMirrored}
-            isActive={uiState === STATES.READY}
-            photoIndex={displayIdx + 1}
-            photoTotal={photoCount}
-          />
-          {uiState === STATES.COUNTDOWN && (
-            <Countdown onComplete={handleCountdownComplete} duration={1} />
-          )}
-          {flashActive && <div className="camera-flash" aria-hidden="true" />}
-        </div>
+    <div className="camera-page-layout">
+      {/* ── Left Column: Sidebar Controls ── */}
+      <div className="camera-sidebar">
+        <button className="camera-back-btn" onClick={() => { stopCamera(); navigate('/setup'); }}>
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+        </button>
       </div>
 
-      {/* ── SETUP ── */}
-      {uiState === STATES.SETUP && (
-        <main className="page-content">
-          <div className="camera-loading anim-scale-in">
-            <div className="spinner" style={{ width: 56, height: 56, borderWidth: 4 }} />
-            <h3 style={{ fontFamily: 'Orbitron', color: '#00D9FF', letterSpacing: '0.1em', margin: 0 }}>
-              MEMUAT KAMERA...
-            </h3>
-            <p style={{ color: '#8899AA', fontSize: '0.85rem', margin: 0 }}>
-              Izinkan akses kamera ketika diminta oleh browser.
-            </p>
+      {/* ── Middle Column: Camera Preview ── */}
+      <div className="camera-middle">
+        {uiState === STATES.ERROR ? (
+          <div className="camera-error card" style={{ padding: '48px 40px', maxWidth: 500, textAlign: 'center' }}>
+            <h2>{errorMsg}</h2>
+            <button className="btn btn-primary" onClick={handleRetryCamera}>🔄 Coba Lagi</button>
           </div>
-        </main>
-      )}
-
-      {/* ── ERROR ── */}
-      {uiState === STATES.ERROR && (
-        <main className="page-content">
-          <div className="camera-error anim-scale-in card" style={{ padding: '48px 40px', maxWidth: 500, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20, textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem' }}>
-              {errorMsg === 'CAMERA_DENIED'    ? '🔒' :
-               errorMsg === 'CAMERA_NOT_FOUND' ? '📷' : '⚠️'}
-            </div>
-            <h3 style={{ fontFamily: 'Orbitron', fontSize: '1.1rem', margin: 0, letterSpacing: '0.08em' }}>
-              {errorMsg === 'CAMERA_DENIED'    ? 'CAMERA ACCESS REQUIRED' :
-               errorMsg === 'CAMERA_NOT_FOUND' ? 'CAMERA NOT FOUND' :
-               errorMsg === 'CAPTURE_ERROR'    ? 'CAPTURE FAILED' :
-               errorMsg === 'COMPOSE_ERROR'    ? 'PROCESSING ERROR' : 'OOPS!'}
-            </h3>
-            <p style={{ color: '#8899AA', fontSize: '0.88rem', lineHeight: 1.6, margin: 0, maxWidth: 360 }}>
-              {errorMsg === 'CAMERA_DENIED'
-                ? 'Silakan izinkan akses kamera melalui ikon gembok di address bar browser, kemudian klik Coba Lagi.'
-                : errorMsg === 'CAMERA_NOT_FOUND'
-                ? 'Pastikan webcam terhubung dan terdeteksi oleh sistem.'
-                : errorMsg === 'CAPTURE_ERROR'
-                ? 'Foto gagal diambil. Pastikan kamera aktif, lalu klik Coba Lagi.'
-                : errorMsg === 'COMPOSE_ERROR'
-                ? 'Foto gagal diproses. Silakan coba ulang.'
-                : 'Terjadi kesalahan. Silakan coba lagi.'}
-            </p>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <button className="btn btn-primary" onClick={handleRetryCamera} id="btn-retry-camera">
-                🔄 Coba Lagi
-              </button>
-              <button className="btn btn-ghost" onClick={() => { stopCamera(); navigate('/'); }} id="btn-home-from-error">
-                Kembali ke Home
-              </button>
-            </div>
-          </div>
-        </main>
-      )}
-
-      {/* ── READY / COUNTDOWN / CAPTURING ── */}
-      {isPhotoTaking && (
-        <main className="camera-main page-content">
-          {/* Info row */}
-          <div className="camera-info anim-float-up">
-            <div className="badge">
-              <span className="neon-dot" />
-              {retakeIdx !== null
-                ? `Mengulang Foto ${retakeIdx + 1}`
-                : `Foto ${displayIdx + 1} dari ${photoCount}`}
-            </div>
-            <h3 style={{ fontFamily: 'Orbitron', color: '#fff', fontSize: '1rem', margin: 0, letterSpacing: '0.05em' }}>
-              {uiState === STATES.READY && retakeIdx !== null ? 'SIAP MENGULANG FOTO?' :
-               uiState === STATES.READY ? 'BERSIAPLAH!' : 'GET READY!'}
-            </h3>
-          </div>
-
-          {/* Controls */}
-          <div className="camera-controls anim-float-up delay-2">
-            {uiState === STATES.READY && (
-              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                <button 
-                  className="btn btn-ghost btn-sm" 
-                  onClick={() => setIsMirrored(!isMirrored)}
-                  title="Flip Camera"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M17 2.1l4 4-4 4"/><path d="M3 12.2v-2a4 4 0 0 1 4-4h13.8M7 21.9l-4-4 4-4"/><path d="M21 11.8v2a4 4 0 0 1-4 4H3.2"/>
-                  </svg>
-                  {isMirrored ? 'Mirrored' : 'Normal'}
-                </button>
-                <button id="btn-capture-start" className="btn btn-primary btn-lg capture-btn" onClick={handleStartCapture}>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/>
-                  </svg>
-                  {retakeIdx !== null ? 'ULANG FOTO' : 'MULAI'}
-                </button>
-              </div>
-            )}
-            {uiState === STATES.COUNTDOWN && (
-              <p className="countdown-hint">Bersiaplah dan lihat ke kamera...</p>
-            )}
-          </div>
-
-          {/* Thumbnails of already-captured photos */}
-          {photos.length > 0 && retakeIdx === null && (
-            <div className="captured-strip">
-              {photos.map((p, i) => (
-                <div key={i} className="captured-thumb">
-                  <img src={p} alt={`Foto ${i + 1}`} />
-                  <span>{i + 1}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </main>
-      )}
-
-      {/* ── REVIEWING ── */}
-      {uiState === STATES.REVIEWING && (
-        <main className="page-content reviewing-main">
-          <PhotoPreview
-            photos={photos}
-            photoCount={photoCount}
-            onRetake={handleRetake}
-            onContinue={handleContinueToCompose}
-            onRetakeAll={handleRetakeAll}
-          />
-        </main>
-      )}
-
-      {/* ── PROCESSING ── */}
-      {uiState === STATES.PROCESSING && (
-        <main className="page-content">
+        ) : uiState === STATES.PROCESSING ? (
           <div className="processing-screen anim-scale-in">
-            <div className="processing-icon">
-              <div className="processing-spinner" />
-              <span>✦</span>
-            </div>
-            <h2 style={{ fontFamily: 'Orbitron', color: '#00D9FF', textAlign: 'center', margin: 0, fontSize: '1.3rem' }}>
-              CREATING YOUR MOMENT...
-            </h2>
-            <p style={{ color: '#8899AA', textAlign: 'center', fontSize: '0.85rem', margin: 0 }}>
-              Menggabungkan foto dan frame Anda...
-            </p>
-            <div style={{ width: '100%', maxWidth: 420 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                <span style={{ fontFamily: 'Orbitron', fontSize: '0.62rem', color: '#8899AA', letterSpacing: '0.1em' }}>PROCESSING</span>
-                <span style={{ fontFamily: 'Orbitron', fontSize: '0.62rem', color: '#00D9FF' }}>{Math.round(progress)}%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
+            <h2 style={{ fontFamily: 'Orbitron', margin: 0 }}>PROCESSING...</h2>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
           </div>
-        </main>
-      )}
-
-      {/* ── DONE ── */}
-      {uiState === STATES.DONE && finalCanvas && (
-        <main className="page-content result-main">
-          <div className="result-screen anim-float-up">
-            <div className="result-header">
-              <div className="badge">
-                <span className="neon-dot" style={{ background: '#00FFB3', boxShadow: '0 0 8px #00FFB3' }} />
-                Selesai!
-              </div>
-              <h2 style={{ fontFamily: 'Orbitron', fontWeight: 800, fontSize: 'clamp(1.2rem, 3vw, 2rem)', margin: 0, letterSpacing: '0.08em' }}>
-                YOUR MOMENT IS READY
-              </h2>
-              <p style={{ color: '#8899AA', margin: 0, fontSize: '0.85rem' }}>
-                Foto berhasil dikomposisikan dengan frame {selectedFrame.name}.
-              </p>
-              
-              {/* Email Status Indicator */}
-              <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                {emailStatus === 'sending' && <span style={{ color: '#00D9FF' }}>⏳ Mengirim ke {userEmail}...</span>}
+        ) : uiState === STATES.SAVE || uiState === STATES.DONE ? (
+          <div className="save-main">
+            <img src={finalCanvas?.toDataURL('image/jpeg', 0.95)} alt="Final" style={{ height: '80vh', borderRadius: '12px', border: '4px solid #000' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginLeft: 40, alignItems: 'center' }}>
+              <div style={{ marginBottom: '8px', fontSize: '1rem', fontWeight: 700 }}>
+                {emailStatus === 'sending' && <span style={{ color: '#0070f3' }}>⏳ Mengirim ke {userEmail}...</span>}
                 {emailStatus === 'sent' && <span style={{ color: '#10B981' }}>✅ Terkirim ke {userEmail}</span>}
                 {emailStatus === 'error' && <span style={{ color: '#EF4444' }}>❌ Gagal mengirim ke {userEmail}</span>}
               </div>
-            </div>
-
-            {/* Photo + QR side-by-side layout */}
-            <div className="result-body">
-              <div className="result-image-wrap anim-scale-in">
-                <img
-                  src={finalCanvas.toDataURL('image/jpeg', 0.95)}
-                  alt="COMIT Booth hasil akhir"
-                  className="result-image"
-                />
-              </div>
-
-              {/* QR Widget */}
-              <div className="result-qr anim-float-up delay-3">
-                <QRWidget accentColor={selectedFrame?.accentColor || '#00D9FF'} />
-              </div>
-            </div>
-
-            <div className="result-actions">
-              {/* Primary actions */}
-              <div className="result-actions-primary">
-                <button id="btn-download-jpg" className="btn btn-primary btn-lg" onClick={handleDownloadJPG}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  JPG
-                </button>
-                <button id="btn-download-png" className="btn btn-primary btn-lg" onClick={handleDownloadPNG}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                  PNG
-                </button>
-                <button id="btn-print-photo" className="btn btn-outline btn-lg" onClick={handlePrint}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="6 9 6 2 18 2 18 9"/>
-                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                    <rect x="6" y="14" width="12" height="8"/>
-                  </svg>
-                  CETAK FOTO
-                </button>
-                <button id="btn-share-wa" className="btn btn-outline btn-lg" style={{ borderColor: '#25D366', color: '#25D366' }} onClick={handleShareWA}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                  </svg>
-                  SHARE WA
-                </button>
-              </div>
-              {/* Secondary actions */}
-              <div className="result-actions-secondary">
-                <button id="btn-foto-lagi" className="btn btn-ghost" onClick={handleFotoLagi}>
-                  📸 Foto Lagi
-                </button>
-                <button id="btn-back-home-result" className="btn btn-ghost btn-sm" onClick={() => { stopCamera(); navigate('/'); }}>
-                  🏠 Home
-                </button>
-              </div>
+              <button className="btn btn-primary" style={{ padding: '16px 48px', fontSize: '2rem' }} onClick={handleSaveClick}>Save</button>
+              <button className="btn btn-ghost" onClick={() => { stopCamera(); navigate('/'); }}>Home</button>
             </div>
           </div>
-        </main>
-      )}
+        ) : uiState === STATES.REVIEWING ? (
+          <div className="reviewing-main">
+            <PhotoPreview
+              photos={photos}
+              photoCount={photoCount}
+              onRetake={handleRetake}
+              onContinue={handleContinueToCompose}
+              onRetakeAll={handleRetakeAll}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="camera-box" style={boxStyle}>
+              <div 
+                className="camera-viewport"
+                style={{ filter: setupData?.filter?.css || 'none', width: '100%', height: '100%', position: 'relative' }}
+              >
+                <Camera
+                  videoRef={videoRef}
+                  mirrored={isMirrored}
+                  isActive={uiState === STATES.READY || uiState === STATES.COUNTDOWN}
+                  photoIndex={displayIdx + 1}
+                  photoTotal={photoCount}
+                />
+                {uiState === STATES.COUNTDOWN && (
+                  <Countdown onComplete={handleCountdownComplete} duration={1} />
+                )}
+                {flashActive && <div className="camera-flash" aria-hidden="true" />}
+                
+                {/* Dynamic AR Stickers Overlay */}
+                {liveStickers.length > 0 && isPhotoTaking && (
+                  <div className="camera-ar-stickers" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                    {liveStickers.map((s) => (
+                      <div 
+                        key={s.id} 
+                        style={{ 
+                          position: 'absolute', 
+                          left: 0, top: 0,
+                          width: s.width, height: s.height,
+                          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                      >
+                        <img src={s.sticker.src} alt={s.sticker.name} onError={(e) => e.target.style.display='none'} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="camera-actions">
+              <button 
+                className="btn btn-ghost" 
+                onClick={() => setIsMirrored(!isMirrored)}
+                title="Flip Camera"
+              >
+                {isMirrored ? 'Mirrored' : 'Normal'}
+              </button>
+              
+              {uiState === STATES.READY && (
+                <button className="camera-capture-btn" onClick={handleStartCapture}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
+                  </svg>
+                  {retakeIdx !== null ? 'ULANG FOTO' : 'AMBIL FOTO'}
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Right Column: Selected Frame Preview ── */}
+      <div className="camera-right">
+        <div 
+          className="camera-frame-thumbnail"
+          style={{ aspectRatio: `${selectedFrame.canvas.width} / ${selectedFrame.canvas.height}` }}
+        >
+          {selectedFrame.image ? (
+            <>
+              <img 
+                src={selectedFrame.image} 
+                alt={selectedFrame.name} 
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="setup-frame-placeholder" style={{ display: 'none', flexDirection: 'column' }}>
+                <span className="neon-dot" style={{ background: selectedFrame.accentColor, marginBottom: 8 }} />
+                <span style={{ color: selectedFrame.accentColor, fontWeight: 'bold' }}>{selectedFrame.name}</span>
+              </div>
+            </>
+          ) : (
+            <div className="setup-frame-placeholder">
+              <span className="neon-dot" style={{ background: selectedFrame.accentColor }} />
+              <span style={{ color: selectedFrame.accentColor }}>{selectedFrame.name}</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

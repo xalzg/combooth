@@ -18,8 +18,8 @@ function EnterEmail({ onEmailSubmit }) {
     // Call the parent handler to store the email
     onEmailSubmit(email.trim());
     
-    // Proceed to select frame
-    navigate('/select-frame');
+    // Proceed to setup page (stickers & filters)
+    navigate('/setup');
   };
 
   return (
@@ -32,8 +32,8 @@ function EnterEmail({ onEmailSubmit }) {
           <div className="logo-text">COMIT BOOTH</div>
           <div className="org-text">Community of Information Technology</div>
         </div>
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/')}>
-          ← Home
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/select-frame')}>
+          ← Frame
         </button>
       </header>
 

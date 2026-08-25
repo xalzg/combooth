@@ -20,8 +20,11 @@
   display: flex;
   flex-direction: column;
   padding: 40px 20px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.5);
   flex-shrink: 0;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
 }
 
 .setup-sidebar-top {
@@ -33,21 +36,28 @@
 .setup-btn {
   width: 100%;
   aspect-ratio: 1;
-  background: #E2E8F0;
-  border: 4px solid #0B1D4F;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(11, 29, 79, 0.1);
+  border-radius: 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.setup-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
 .setup-btn.active {
-  background: #BFDBFE;
-  box-shadow: 0 0 12px rgba(30, 58, 138, 0.3);
+  background: #00D9FF;
+  border-color: #00D9FF;
+  box-shadow: 0 8px 24px rgba(0, 217, 255, 0.4);
 }
 
 .setup-btn-icon {
@@ -58,6 +68,9 @@
   font-weight: 800;
   font-size: 0.9rem;
   color: #0F172A;
+}
+.setup-btn.active span {
+  color: #020C1A;
 }
 
 .setup-back-btn {
@@ -182,14 +195,13 @@
 /* ── Modals ── */
 .setup-modal {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  background: var(--white);
-  border: 3px solid #000;
-  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 24px;
   padding: 24px;
   z-index: 110;
-  box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(11, 29, 79, 0.08);
 }
 
 .sticker-modal {
@@ -197,7 +209,7 @@
 }
 
 .filter-modal {
-  width: 600px;
+  width: 480px;
 }
 
 .sticker-grid {

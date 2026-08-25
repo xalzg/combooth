@@ -250,55 +250,55 @@ function SetupPage({ selectedFrame, photoCount, onComplete }) {
               ))}
             </div>
           )}
-          
-          {/* ── Modals Overlay (Positions on top of camera box) ── */}
-          {activeTab === 'sticker' && (
-            <div className="setup-modal sticker-modal anim-scale-in">
-              <div className="sticker-grid">
-                <div 
-                  className={`sticker-item ${activeStickers.length === 0 ? 'selected' : ''}`} 
-                  onClick={() => handleAddSticker({ id: 'none' })}
-                >
-                  <div className="sticker-icon">🚫</div>
-                  <span>Tidak ada</span>
-                </div>
-                {STICKERS.map(s => (
-                  <div 
-                    key={s.id} 
-                    className={`sticker-item ${isStickerSelected(s.id) ? 'selected' : ''}`} 
-                    onClick={() => handleAddSticker(s)}
-                  >
-                    <img src={s.src} alt={s.name} onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
-                    <div className="sticker-img-placeholder" style={{ display: 'none' }}>{s.name}</div>
-                    <span>{s.name}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="modal-footer">
-                <span className="modal-warning">*Maksimal 2 pilihan</span>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'filter' && (
-            <div className="setup-modal filter-modal anim-scale-in">
-              <div className="filter-grid">
-                {FILTERS.map(f => (
-                  <div 
-                    key={f.id} 
-                    className={`filter-item ${selectedFilter.id === f.id ? 'active' : ''}`}
-                    onClick={() => setSelectedFilter(f)}
-                  >
-                    <div className="filter-preview" style={{ filter: f.css }}>
-                      <img src={selectedFrame.image || '/mascot.png'} alt="preview" />
-                    </div>
-                    <span>{f.name}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+        
+        {/* ── Modals Overlay (Positions on top of middle column) ── */}
+        {activeTab === 'sticker' && (
+          <div className="setup-modal sticker-modal anim-scale-in" style={{ top: 40, left: 40 }}>
+            <div className="sticker-grid">
+              <div 
+                className={`sticker-item ${activeStickers.length === 0 ? 'selected' : ''}`} 
+                onClick={() => handleAddSticker({ id: 'none' })}
+              >
+                <div className="sticker-icon">🚫</div>
+                <span>Tidak ada</span>
+              </div>
+              {STICKERS.map(s => (
+                <div 
+                  key={s.id} 
+                  className={`sticker-item ${isStickerSelected(s.id) ? 'selected' : ''}`} 
+                  onClick={() => handleAddSticker(s)}
+                >
+                  <img src={s.src} alt={s.name} onError={(e) => { e.target.style.display='none'; e.target.nextSibling.style.display='block'; }} />
+                  <div className="sticker-img-placeholder" style={{ display: 'none' }}>{s.name}</div>
+                  <span>{s.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="modal-footer">
+              <span className="modal-warning">*Maksimal 2 pilihan</span>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'filter' && (
+          <div className="setup-modal filter-modal anim-scale-in" style={{ top: 40, left: 40 }}>
+            <div className="filter-grid">
+              {FILTERS.map(f => (
+                <div 
+                  key={f.id} 
+                  className={`filter-item ${selectedFilter.id === f.id ? 'active' : ''}`}
+                  onClick={() => setSelectedFilter(f)}
+                >
+                  <div className="filter-preview" style={{ filter: f.css }}>
+                    <img src={selectedFrame.image || '/mascot.png'} alt="preview" />
+                  </div>
+                  <span>{f.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* GO Button */}
         <div className="setup-actions">

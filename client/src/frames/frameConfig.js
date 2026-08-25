@@ -38,7 +38,7 @@ function getSlotsForFrame(frameId) {
   }
   
   if (frameId === 'frame-5') { // Circuit COMIT Landscape (1 slot)
-    return [{ x: 70, y: 105, width: 873, height: 488 }];
+    return [{ x: 69, y: 69, width: 874, height: 524 }];
   }
   
   return [{ x: 140, y: 300, width: 800, height: 1066 }];

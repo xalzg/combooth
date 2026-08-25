@@ -20,7 +20,7 @@ function getSlotsForFrame(frameId) {
     ];
   }
   
-  if (frameId === 'frame-3a' || frameId === 'frame-3b') { // Diagonal stripes (3 slots)
+  if (frameId === 'frame-3a') { // Diagonal stripes (3 slots)
     return [
       { x: 58, y: 82, width: 466, height: 266 },
       { x: 58, y: 368, width: 466, height: 266 },
@@ -84,23 +84,6 @@ export const FRAMES = [
   {
     id:          'frame-3a',
     name:        'Blue Stripes',
-    subtitle:    '3 Photos Edition',
-    description: 'Frame dengan 3 slot foto horizontal.',
-    photoCount:  3,
-    previewBg:   '#4379C3',
-    accentColor: '#1A73E8',
-    overlayColor: '#00D9FF',
-    canvas:      { width: 583, height: 1024 },
-    image:       '/frames-new/frame-3.png',
-    branding: {
-      topText:    'COMIT BOOTH',
-      bottomText: 'KABINET AVANTERA',
-      orgText:    'Community of Information Technology',
-    },
-  },
-  {
-    id:          'frame-3b',
-    name:        'Blue Stripes (Variant)',
     subtitle:    '3 Photos Edition',
     description: 'Frame dengan 3 slot foto horizontal.',
     photoCount:  3,

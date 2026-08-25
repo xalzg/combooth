@@ -6,7 +6,7 @@ import Countdown from '../components/Countdown';
 import PhotoPreview from '../components/PhotoPreview';
 import { getFrameSlots } from '../frames/frameConfig';
 import { startCamera, stopCamera, captureFrame } from '../services/camera';
-import { composePhotos, applyEditorChanges, bakeStickersOntoPhoto, downloadCanvas, downloadCanvasPNG, generateFilename, printCanvas, getTransparentFrameURL } from '../services/composer';
+import { composePhotos, applyEditorChanges, bakeStickersOntoPhoto, downloadCanvas, downloadCanvasPNG, generateFilename, printCanvas } from '../services/composer';
 import { initFaceTracking, detectFace, getLandmarks, getFeatureCoordinates } from '../services/faceTracking';
 import { trackSession } from '../services/analytics';
 import { playShutter, playSuccess } from '../services/sound';
@@ -39,23 +39,17 @@ function CameraPage({ selectedFrame, photoCount, setupData, userEmail }) {
   const [emailStatus, setEmailStatus] = useState(''); // '', 'sending', 'sent', 'error'
   const [liveStickers, setLiveStickers] = useState(setupData?.stickers || []);
   const liveStickersRef = useRef(liveStickers);
-  const [transparentOverlay, setTransparentOverlay] = useState(null);
 
   const slots = getFrameSlots(selectedFrame?.id, photoCount);
-  const frameW = selectedFrame?.canvas?.width || 1080;
-  const frameH = selectedFrame?.canvas?.height || 1920;
-  const isPortrait = frameH > frameW;
+  const isPortrait = slots[0] && slots[0].height > slots[0].width;
+  const slotAspectRatio = slots[0] ? `${slots[0].width} / ${slots[0].height}` : '16 / 9';
   
   const boxStyle = {
-    aspectRatio: `${frameW} / ${frameH}`,
-    height: isPortrait ? '70vh' : 'auto',
+    aspectRatio: slotAspectRatio,
+    height: isPortrait ? '65vh' : 'auto',
     width: isPortrait ? 'auto' : '100%',
-    maxHeight: '70vh',
-    maxWidth: '900px',
-    position: 'relative',
-    backgroundColor: selectedFrame?.previewBg || '#071426',
-    borderRadius: '16px',
-    overflow: 'hidden'
+    maxHeight: '65vh',
+    maxWidth: '900px'
   };
 
   useEffect(() => {
@@ -68,8 +62,6 @@ function CameraPage({ selectedFrame, photoCount, setupData, userEmail }) {
   useEffect(() => {
     if (!selectedFrame || !photoCount) {
       navigate('/select-frame');
-    } else {
-      getTransparentFrameURL(selectedFrame, photoCount).then(setTransparentOverlay);
     }
   }, [selectedFrame, photoCount, navigate]);
 
@@ -388,91 +380,42 @@ function CameraPage({ selectedFrame, photoCount, setupData, userEmail }) {
         ) : (
           <>
             <div className="camera-box" style={boxStyle}>
-              {/* Previous photos */}
-              {photos.map((photoData, idx) => {
-                if (!photoData || idx === displayIdx) return null;
-                const slot = slots[idx];
-                if (!slot) return null;
-                return (
-                  <div key={`photo-${idx}`} style={{
-                    position: 'absolute',
-                    left: `${(slot.x / frameW) * 100}%`,
-                    top: `${(slot.y / frameH) * 100}%`,
-                    width: `${(slot.width / frameW) * 100}%`,
-                    height: `${(slot.height / frameH) * 100}%`,
-                    overflow: 'hidden'
-                  }}>
-                    <img src={photoData} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="Captured" />
-                  </div>
-                );
-              })}
-
-              {/* Current live camera slot */}
-              {(() => {
-                const slot = slots[displayIdx] || slots[0];
-                return (
-                  <div 
-                    className="camera-viewport"
-                    style={{ 
-                      position: 'absolute',
-                      left: `${(slot.x / frameW) * 100}%`,
-                      top: `${(slot.y / frameH) * 100}%`,
-                      width: `${(slot.width / frameW) * 100}%`,
-                      height: `${(slot.height / frameH) * 100}%`,
-                      filter: setupData?.filter?.css || 'none', 
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <Camera
-                      videoRef={videoRef}
-                      mirrored={isMirrored}
-                      isActive={uiState === STATES.READY || uiState === STATES.COUNTDOWN}
-                      photoIndex={displayIdx + 1}
-                      photoTotal={photoCount}
-                    />
-                    {uiState === STATES.COUNTDOWN && (
-                      <Countdown onComplete={handleCountdownComplete} duration={1} />
-                    )}
-                    {flashActive && <div className="camera-flash" aria-hidden="true" />}
-                    
-                    {/* Dynamic AR Stickers Overlay */}
-                    {liveStickers.length > 0 && isPhotoTaking && (
-                      <div className="camera-ar-stickers" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                        {liveStickers.map((s) => (
-                          <div 
-                            key={s.id} 
-                            style={{ 
-                              position: 'absolute', 
-                              left: 0, top: 0,
-                              width: s.width, height: s.height,
-                              transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`,
-                              display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}
-                          >
-                            <img src={s.sticker.src} alt={s.sticker.name} onError={(e) => e.target.style.display='none'} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Frame overlay */}
-              {transparentOverlay && (
-                <img 
-                  src={transparentOverlay} 
-                  style={{ 
-                    position: 'absolute', 
-                    inset: 0, 
-                    width: '100%', 
-                    height: '100%', 
-                    pointerEvents: 'none',
-                    zIndex: 20 
-                  }} 
-                  alt=""
+              <div 
+                className="camera-viewport"
+                style={{ filter: setupData?.filter?.css || 'none', width: '100%', height: '100%', position: 'relative' }}
+              >
+                <Camera
+                  videoRef={videoRef}
+                  mirrored={isMirrored}
+                  isActive={uiState === STATES.READY || uiState === STATES.COUNTDOWN}
+                  photoIndex={displayIdx + 1}
+                  photoTotal={photoCount}
                 />
-              )}
+                {uiState === STATES.COUNTDOWN && (
+                  <Countdown onComplete={handleCountdownComplete} duration={1} />
+                )}
+                {flashActive && <div className="camera-flash" aria-hidden="true" />}
+                
+                {/* Dynamic AR Stickers Overlay */}
+                {liveStickers.length > 0 && isPhotoTaking && (
+                  <div className="camera-ar-stickers" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+                    {liveStickers.map((s) => (
+                      <div 
+                        key={s.id} 
+                        style={{ 
+                          position: 'absolute', 
+                          left: 0, top: 0,
+                          width: s.width, height: s.height,
+                          transform: `translate(${s.x}px, ${s.y}px) rotate(${s.rotation}deg)`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center'
+                        }}
+                      >
+                        <img src={s.sticker.src} alt={s.sticker.name} onError={(e) => e.target.style.display='none'} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="camera-actions">

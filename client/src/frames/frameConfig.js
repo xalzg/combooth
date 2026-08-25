@@ -10,30 +10,30 @@ export const CANVAS_H = 1920;
 
 function getSlotsForFrame(frameId) {
   if (frameId === 'frame-1') { // Live Report (1 slot)
-    return [{ x: 104, y: 153, width: 486, height: 686 }];
+    return [{ x: 122, y: 162, width: 459, height: 674 }];
   }
   
   if (frameId === 'frame-2') { // Blue texture (2 slots)
     return [
-      { x: 14, y: 75, width: 594, height: 368 },
-      { x: 14, y: 444, width: 594, height: 407 }
+      { x: 94, y: 75, width: 434, height: 317 },
+      { x: 94, y: 435, width: 434, height: 317 }
     ];
   }
   
   if (frameId === 'frame-3a') { // Diagonal stripes (3 slots)
     return [
-      { x: 58, y: 82, width: 466, height: 266 },
-      { x: 58, y: 368, width: 466, height: 266 },
-      { x: 58, y: 654, width: 466, height: 266 },
+      { x: 64, y: 82, width: 443, height: 267 },
+      { x: 64, y: 369, width: 443, height: 267 },
+      { x: 64, y: 656, width: 443, height: 267 },
     ];
   }
   
   if (frameId === 'frame-4') { // Building Background (4 slots)
     return [
-      { x: 50, y: 50, width: 400, height: 220 },
-      { x: 50, y: 290, width: 400, height: 220 },
-      { x: 50, y: 530, width: 400, height: 220 },
-      { x: 50, y: 770, width: 400, height: 220 },
+      { x: 51, y: 52, width: 373, height: 202 },
+      { x: 51, y: 279, width: 373, height: 202 },
+      { x: 51, y: 506, width: 373, height: 202 },
+      { x: 51, y: 732, width: 373, height: 202 },
     ];
   }
   

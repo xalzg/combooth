@@ -37,6 +37,10 @@ function getSlotsForFrame(frameId) {
     ];
   }
   
+  if (frameId === 'frame-5') { // Circuit COMIT Landscape (1 slot)
+    return [{ x: 70, y: 105, width: 873, height: 488 }];
+  }
+  
   return [{ x: 140, y: 300, width: 800, height: 1066 }];
 }
 
@@ -122,6 +126,23 @@ export const FRAMES = [
     overlayColor: '#00D9FF',
     canvas:      { width: 500, height: 1024 },
     image:       '/frames-new/frame-4.png',
+    branding: {
+      topText:    'COMIT BOOTH',
+      bottomText: 'KABINET AVANTERA',
+      orgText:    'Community of Information Technology',
+    },
+  },
+  {
+    id:          'frame-5',
+    name:        'Circuit COMIT',
+    subtitle:    '1 Photo Landscape',
+    description: 'Frame lanskap dengan desain sirkuit dan maskot COMIT.',
+    photoCount:  1,
+    previewBg:   '#020C1A',
+    accentColor: '#00D9FF',
+    overlayColor: '#1A73E8',
+    canvas:      { width: 1024, height: 695 },
+    image:       '/frames-new/frame-5.png',
     branding: {
       topText:    'COMIT BOOTH',
       bottomText: 'KABINET AVANTERA',

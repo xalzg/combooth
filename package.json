@@ -9,8 +9,8 @@
     "dev:client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "npm run build --prefix client",
-    "vercel-build": "npm run build --prefix client && cp -R client/dist public",
-    "start": "npm start --prefix server"
+    "vercel-build": "npm run install:all && npm run build --prefix client && cp -R client/dist public",
+    "start": "node server/server.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

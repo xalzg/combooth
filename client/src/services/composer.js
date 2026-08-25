@@ -360,3 +360,56 @@ function _fallbackPrint(canvas) {
   window.print();
   setTimeout(() => { document.head.removeChild(style); document.body.removeChild(img); }, 2000);
 }
+
+/**
+ * Dynamically chroma-keys the frame and returns a transparent PNG Data URL.
+ * Used for the live camera preview overlay.
+ */
+export async function getTransparentFrameURL(frame, photoCount) {
+  if (!frame || !frame.image) return null;
+  const W = frame.canvas?.width || 1080;
+  const H = frame.canvas?.height || 1920;
+  
+  try {
+    const templateImg = await loadImage(frame.image);
+    const canvas = document.createElement('canvas');
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(templateImg, 0, 0, W, H);
+    
+    const imgData = ctx.getImageData(0, 0, W, H);
+    const data = imgData.data;
+    const slots = getFrameSlots(frame.id, photoCount);
+    
+    const slotColors = slots.map(slot => {
+       const cx = Math.floor(slot.x + slot.width / 2);
+       const cy = Math.floor(slot.y + slot.height / 2);
+       const idx = (cy * W + cx) * 4;
+       return { r: data[idx], g: data[idx+1], b: data[idx+2], slot };
+    });
+
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const r = data[i], g = data[i+1], b = data[i+2];
+        
+        for (const sc of slotColors) {
+          const { slot, r: sr, g: sg, b: sb } = sc;
+          if (x >= slot.x - 5 && x <= slot.x + slot.width + 5 &&
+              y >= slot.y - 5 && y <= slot.y + slot.height + 5) {
+              if (Math.abs(r - sr) <= 15 && Math.abs(g - sg) <= 15 && Math.abs(b - sb) <= 15) {
+                 data[i+3] = 0;
+              }
+          }
+        }
+      }
+    }
+    
+    ctx.putImageData(imgData, 0, 0);
+    return canvas.toDataURL('image/png');
+  } catch (e) {
+    console.warn("Failed to generate transparent frame overlay", e);
+    return null;
+  }
+}

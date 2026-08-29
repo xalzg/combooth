@@ -107,7 +107,7 @@ function AuthSessionPage({ onAuthSuccess }) {
                 placeholder="Misal: A1B2C3"
                 value={token}
                 onChange={(e) => {
-                  setToken(e.target.value.toUpperCase());
+                  setToken(e.target.value.toUpperCase().replace(/\s/g, ''));
                   setError('');
                 }}
                 style={{ textAlign: 'center', letterSpacing: '4px', textTransform: 'uppercase' }}

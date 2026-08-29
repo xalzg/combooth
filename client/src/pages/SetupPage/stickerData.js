@@ -15,10 +15,8 @@ export const STICKERS = [
 ];
 
 export const FILTERS = [
-  { id: 'none',       name: 'Normal',    css: 'none' },
-  { id: 'grayscale',  name: 'B & W',     css: 'grayscale(100%)' },
-  { id: 'sepia',      name: 'Sepia',     css: 'sepia(80%)' },
-  { id: 'vintage',    name: 'Vintage',   css: 'contrast(120%) sepia(50%)' },
-  { id: 'cool',       name: 'Cool',      css: 'hue-rotate(180deg) saturate(150%)' },
-  { id: 'smooth',     name: 'Smooth',    css: 'contrast(90%) blur(1px)' },
+  { id: 'original',     name: 'Original',    css: 'none' },
+  { id: 'natural',      name: 'Natural',     css: 'brightness(105%) saturate(105%)' },
+  { id: 'soft_beauty',  name: 'Soft Beauty', css: 'contrast(90%) brightness(105%) blur(0.5px) saturate(110%)' },
+  { id: 'glow',         name: 'Glow',        css: 'brightness(110%) contrast(110%) saturate(120%)' }
 ];

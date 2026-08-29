@@ -10,7 +10,7 @@ function SelectFrame({ onFrameSelect }) {
   const handleSelect = (frame) => {
     onFrameSelect(frame);
     setTimeout(() => {
-      navigate('/enter-email');
+      navigate('/setup');
     }, 400);
   };
 

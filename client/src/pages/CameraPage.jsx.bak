@@ -24,7 +24,7 @@ const STATES = {
   ERROR:      'ERROR',
 };
 
-function CameraPage({ selectedFrame, photoCount, setupData, userEmail, sessionToken }) {
+function CameraPage({ selectedFrame, photoCount, setupData, userEmail }) {
   const navigate = useNavigate();
 
   const [uiState,     setUiState]     = useState(STATES.SETUP);
@@ -227,7 +227,7 @@ function CameraPage({ selectedFrame, photoCount, setupData, userEmail, sessionTo
     setEmailStatus('');
     try {
       // 1. Compose base photos
-      const baseCanvas = await composePhotos(photos, selectedFrame, photoCount, setupData?.filter, pct => setProgress(pct * 0.5));
+      const baseCanvas = await composePhotos(photos, selectedFrame, photoCount, pct => setProgress(pct * 0.5));
       
       // 2. Apply chosen filters
       const finalFilterAndStickers = {
@@ -254,14 +254,6 @@ function CameraPage({ selectedFrame, photoCount, setupData, userEmail, sessionTo
           if (res.ok) setEmailStatus('sent');
           else setEmailStatus('error');
         }).catch(() => setEmailStatus('error'));
-        
-        if (sessionToken) {
-          fetch('/api/session/complete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: sessionToken })
-          }).catch(console.error);
-        }
       }
 
       setUiState(STATES.SAVE);

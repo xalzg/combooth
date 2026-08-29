@@ -73,7 +73,7 @@ function roundedRect(ctx, x, y, w, h, r) {
 }
 
 /** Draw a photo in a slot using object-fit: cover logic */
-function drawPhotoInSlot(ctx, img, slot, filterCss, r = 24) {
+function drawPhotoInSlot(ctx, img, slot, r = 24) {
   const { x, y, width, height } = slot;
   const ia = img.naturalWidth / img.naturalHeight;
   const sa = width / height;
@@ -85,14 +85,7 @@ function drawPhotoInSlot(ctx, img, slot, filterCss, r = 24) {
   ctx.beginPath();
   roundedRect(ctx, x, y, width, height, r);
   ctx.clip();
-  
-  if (filterCss && filterCss !== 'none') {
-    ctx.filter = filterCss;
-  }
-  
   ctx.drawImage(img, sx, sy, sw, sh, x, y, width, height);
-  
-  ctx.filter = 'none'; // reset filter
   
   // Add a subtle inner shadow/border to blend with the template
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -106,7 +99,7 @@ function drawPhotoInSlot(ctx, img, slot, filterCss, r = 24) {
 /**
  * Compose photos into a 1080x1920 COMIT Booth frame.
  */
-export async function composePhotos(photos, frame, photoCount, filter, onProgress) {
+export async function composePhotos(photos, frame, photoCount, onProgress) {
   await document.fonts.ready.catch(() => {});
 
   const W = frame.canvas?.width || 1080;
@@ -132,7 +125,7 @@ export async function composePhotos(photos, frame, photoCount, filter, onProgres
   onProgress?.(50);
 
   images.forEach((img, i) => {
-    if (slots[i]) drawPhotoInSlot(ctx, img, slots[i], filter?.css, 0); // 0px border radius to completely fill hole
+    if (slots[i]) drawPhotoInSlot(ctx, img, slots[i], 20); // 20px border radius
   });
   onProgress?.(70);
 
@@ -222,8 +215,12 @@ export async function applyEditorChanges(baseCanvas, { filter, stickers, contain
 
   onProgress?.(20);
 
-  // Filters are now applied directly to the photos in composePhotos()
+  // Apply filter to base canvas
+  if (filter && filter.css && filter.css !== 'none') {
+    ctx.filter = filter.css;
+  }
   ctx.drawImage(baseCanvas, 0, 0);
+  ctx.filter = 'none'; // reset filter for stickers
 
   onProgress?.(60);
 
@@ -362,57 +359,4 @@ function _fallbackPrint(canvas) {
   document.body.appendChild(img);
   window.print();
   setTimeout(() => { document.head.removeChild(style); document.body.removeChild(img); }, 2000);
-}
-
-/**
- * Dynamically chroma-keys the frame and returns a transparent PNG Data URL.
- * Used for the live camera preview overlay.
- */
-export async function getTransparentFrameURL(frame, photoCount) {
-  if (!frame || !frame.image) return null;
-  const W = frame.canvas?.width || 1080;
-  const H = frame.canvas?.height || 1920;
-  
-  try {
-    const templateImg = await loadImage(frame.image);
-    const canvas = document.createElement('canvas');
-    canvas.width = W;
-    canvas.height = H;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(templateImg, 0, 0, W, H);
-    
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const data = imgData.data;
-    const slots = getFrameSlots(frame.id, photoCount);
-    
-    const slotColors = slots.map(slot => {
-       const cx = Math.floor(slot.x + slot.width / 2);
-       const cy = Math.floor(slot.y + slot.height / 2);
-       const idx = (cy * W + cx) * 4;
-       return { r: data[idx], g: data[idx+1], b: data[idx+2], slot };
-    });
-
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const i = (y * W + x) * 4;
-        const r = data[i], g = data[i+1], b = data[i+2];
-        
-        for (const sc of slotColors) {
-          const { slot, r: sr, g: sg, b: sb } = sc;
-          if (x >= slot.x - 5 && x <= slot.x + slot.width + 5 &&
-              y >= slot.y - 5 && y <= slot.y + slot.height + 5) {
-              if (Math.abs(r - sr) <= 15 && Math.abs(g - sg) <= 15 && Math.abs(b - sb) <= 15) {
-                 data[i+3] = 0;
-              }
-          }
-        }
-      }
-    }
-    
-    ctx.putImageData(imgData, 0, 0);
-    return canvas.toDataURL('image/png');
-  } catch (e) {
-    console.warn("Failed to generate transparent frame overlay", e);
-    return null;
-  }
 }

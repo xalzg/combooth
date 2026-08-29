@@ -10,6 +10,7 @@ import nodemailer     from 'nodemailer';
 import dotenv         from 'dotenv';
 import { join, dirname } from 'path';
 import { fileURLToPath }  from 'url';
+import os             from 'os';
 
 dotenv.config();
 
@@ -35,6 +36,22 @@ app.get('/api/health', (_req, res) => {
     uptime:  Math.round(process.uptime()),
     time:    new Date().toISOString(),
   });
+});
+
+function getLocalIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+
+app.get('/api/network-info', (_req, res) => {
+  res.json({ ip: getLocalIp() });
 });
 
 // ── Frames metadata ───────────────────────────────────────────────────────────
@@ -146,6 +163,63 @@ app.get('/api/analytics/export/csv', (_req, res) => {
 // ── Reset ─────────────────────────────────────────────────────────────────────
 app.delete('/api/analytics/reset', (_req, res) => {
   usageLog.length = 0; // Clear the array
+  res.json({ ok: true });
+});
+
+// ── Session (Pre-Registration) ────────────────────────────────────────────────
+const sessions = new Map();
+
+function generateSessionCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+app.post('/api/session/register', (req, res) => {
+  const { email } = req.body;
+  if (!email || !email.toLowerCase().endsWith('@gmail.com')) {
+    return res.status(400).json({ error: 'Hanya alamat @gmail.com yang diizinkan.' });
+  }
+
+  const token = generateSessionCode();
+  sessions.set(token, {
+    email: email.toLowerCase(),
+    status: 'READY',
+    createdAt: Date.now(),
+    expiresAt: Date.now() + 1000 * 60 * 60 * 2 // 2 hours expiry
+  });
+
+  res.json({ ok: true, token, email: email.toLowerCase() });
+});
+
+app.post('/api/session/validate', (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ error: 'Kode diperlukan.' });
+  
+  const upperToken = token.toUpperCase();
+  const session = sessions.get(upperToken);
+  
+  if (!session) {
+    return res.status(404).json({ error: 'Kode tidak ditemukan atau salah.' });
+  }
+  
+  if (session.status === 'COMPLETED') {
+    return res.status(403).json({ error: 'Kode ini sudah digunakan. Silakan registrasi baru.' });
+  }
+  
+  if (Date.now() > session.expiresAt) {
+    sessions.delete(upperToken);
+    return res.status(403).json({ error: 'Kode sudah expired. Silakan registrasi ulang.' });
+  }
+  
+  session.status = 'IN_USE';
+  res.json({ ok: true, email: session.email, token: upperToken });
+});
+
+app.post('/api/session/complete', (req, res) => {
+  const { token } = req.body;
+  if (token) {
+    const session = sessions.get(token.toUpperCase());
+    if (session) session.status = 'COMPLETED';
+  }
   res.json({ ok: true });
 });
 
